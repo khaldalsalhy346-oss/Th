@@ -39,47 +39,21 @@
         }
     </script>
     <style>
-        body {
-            font-family: 'Cairo', sans-serif;
-            background-color: #f8fafc;
-        }
-
-        .sticker-card {
-            width: 85mm;
-            height: 38mm;
-            box-sizing: border-box;
-            page-break-inside: avoid;
-        }
-
+        body { font-family: 'Cairo', sans-serif; background-color: #f8fafc; }
+        .sticker-card { width: 85mm; height: 38mm; box-sizing: border-box; page-break-inside: avoid; }
         @media print {
             .no-print { display: none !important; }
             .print-only { display: block !important; }
-            body { 
-                background: white !important; 
-                margin: 0 !important;
-                padding: 0 !important;
-            }
-            @page {
-                size: A4 portrait;
-                margin: 8mm 6mm;
-            }
-            .a4-print-grid {
-                display: flex !important;
-                flex-wrap: wrap !important;
-                gap: 4mm !important;
-                justify-content: flex-start !important;
-            }
-            .sticker-card {
-                border: 1px dashed #bbb !important;
-                box-shadow: none !important;
-                background: white !important;
-            }
+            body { background: white !important; margin: 0 !important; padding: 0 !important; }
+            @page { size: A4 portrait; margin: 8mm 6mm; }
+            .a4-print-grid { display: flex !important; flex-wrap: wrap !important; gap: 4mm !important; justify-content: flex-start !important; }
+            .sticker-card { border: 1px dashed #bbb !important; box-shadow: none !important; background: white !important; }
         }
     </style>
 </head>
 <body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col justify-between selection:bg-brand-600 selection:text-white">
 
-    <!-- Navbar / Header -->
+    <!-- Header -->
     <header class="bg-gradient-to-r from-brand-900 via-brand-800 to-brand-900 text-white shadow-lg sticky top-0 z-40 border-b-2 border-brand-gold no-print">
         <div class="max-w-7xl mx-auto px-4 py-3 flex flex-wrap justify-between items-center gap-2">
             <div class="flex items-center space-x-3 space-x-reverse cursor-pointer" onclick="switchTab('dashboard')">
@@ -88,15 +62,14 @@
                 </div>
                 <div>
                     <h1 class="text-xl font-bold tracking-tight text-amber-100">دار سفوان القرآنية</h1>
-                    <p class="text-xs text-emerald-200">نظام إدارة الممتلكات (مربوط سحابياً)</p>
+                    <p class="text-xs text-emerald-200">نظام إدارة الممتلكات (مربوط بسحابتك الخاصة)</p>
                 </div>
             </div>
 
             <div class="flex items-center gap-2">
-                <!-- Cloud Status Indicator -->
                 <div id="cloud-status" class="bg-emerald-950/80 border border-emerald-500/40 text-emerald-300 text-xs px-2.5 py-1 rounded-lg flex items-center gap-1.5 shadow-inner">
                     <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-                    <span id="cloud-status-text">متصل بالسحابة</span>
+                    <span id="cloud-status-text">جاري الاتصال بالسحابة...</span>
                 </div>
 
                 <nav class="flex items-center space-x-1 space-x-reverse overflow-x-auto py-1 text-sm font-medium">
@@ -126,7 +99,6 @@
     </header>
 
     <main class="max-w-7xl mx-auto px-4 py-6 flex-grow w-full">
-
         <!-- Notification Toast -->
         <div id="toast" class="fixed bottom-5 left-5 z-50 transform translate-y-20 opacity-0 transition-all duration-300 bg-slate-900 text-white px-5 py-3 rounded-xl shadow-2xl flex items-center gap-3 border-r-4 border-emerald-500 max-w-md no-print">
             <i id="toast-icon" class="fa-solid fa-circle-check text-emerald-400 text-lg"></i>
@@ -137,17 +109,17 @@
         <section id="tab-dashboard" class="tab-content space-y-6">
             <div class="bg-gradient-to-l from-brand-800 to-emerald-900 text-white rounded-2xl p-6 shadow-md border border-brand-700 relative overflow-hidden">
                 <div class="relative z-10 max-w-2xl">
-                    <span class="bg-amber-500/20 text-amber-300 text-xs font-semibold px-3 py-1 rounded-full border border-amber-400/30">مربوط بقاعدة بيانات سحابية مباشرة</span>
+                    <span class="bg-amber-500/20 text-amber-300 text-xs font-semibold px-3 py-1 rounded-full border border-amber-400/30">مربوط بسحابتك الخاصة بالكامل</span>
                     <h2 class="text-2xl md:text-3xl font-extrabold mt-2 text-amber-50">لوحة التحكم وإحصائيات الممتلكات</h2>
                     <p class="text-emerald-100 text-sm mt-2 leading-relaxed">
-                        جميع التغييرات التي تجريها تحفظ تلقائياً في السحابة لتتمكن من الوصول إليها من أي جهاز أو هاتف محمول بكل سهولة وسرعة.
+                        الآن كل إضافة أو تعديل يتم حفظه في سحابتك الشخصية ويظهر فوراً على أي هاتف أو جهاز يفتح رابط موقعك!
                     </p>
                     <div class="mt-5 flex flex-wrap gap-3">
                         <button onclick="switchTab('add-asset')" class="bg-amber-500 hover:bg-amber-600 text-brand-900 font-bold px-4 py-2.5 rounded-xl shadow transition flex items-center gap-2 text-sm">
                             <i class="fa-solid fa-plus"></i> إضافة ممتلك جديد
                         </button>
                         <button onclick="syncDataFromCloud()" class="bg-white/10 hover:bg-white/20 text-white font-medium px-4 py-2.5 rounded-xl shadow backdrop-blur-sm transition flex items-center gap-2 text-sm border border-white/20">
-                            <i class="fa-solid fa-rotate text-amber-300"></i> تحديث البيانات يدوياً
+                            <i class="fa-solid fa-rotate text-amber-300"></i> مزامنة فورية
                         </button>
                     </div>
                 </div>
@@ -194,7 +166,6 @@
                 </div>
             </div>
 
-            <!-- Recent Assets Overview -->
             <div class="bg-white rounded-2xl shadow-sm border border-slate-200/80 p-5">
                 <div class="flex justify-between items-center mb-4">
                     <h3 class="font-bold text-slate-800 text-lg flex items-center gap-2">
@@ -215,7 +186,7 @@
                 <div class="bg-gradient-to-r from-brand-800 to-brand-900 text-white p-5 flex justify-between items-center">
                     <div>
                         <h2 id="form-title" class="text-xl font-bold text-amber-300">إضافة ممتلك جديد</h2>
-                        <p class="text-xs text-emerald-100">سيتم حفظ البيانات مباشرة في السحابة فور الضغط على زر الحفظ</p>
+                        <p class="text-xs text-emerald-100">يحفظ تلقائياً في سحابتك فور الضغط على حفظ</p>
                     </div>
                     <span class="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center text-amber-300">
                         <i class="fa-solid fa-file-circle-plus text-lg"></i>
@@ -276,12 +247,12 @@
 
                     <div class="space-y-1">
                         <label for="asset-notes" class="block text-xs font-bold text-slate-700">ملاحظات إضافية</label>
-                        <textarea id="asset-notes" rows="3" placeholder="أضف أي تفاصيل مثل تاريخ الشراء، الشركة المصنعة..." class="w-full border border-slate-300 rounded-xl px-3.5 py-2 text-sm focus:ring-2 focus:ring-brand-600 focus:outline-none transition"></textarea>
+                        <textarea id="asset-notes" rows="3" placeholder="أضف أي تفاصيل أخرى..." class="w-full border border-slate-300 rounded-xl px-3.5 py-2 text-sm focus:ring-2 focus:ring-brand-600 focus:outline-none transition"></textarea>
                     </div>
 
                     <div class="flex items-center justify-end gap-3 pt-3 border-t border-slate-100">
                         <button type="button" onclick="resetForm()" class="px-5 py-2.5 rounded-xl border border-slate-300 text-slate-600 text-sm font-semibold hover:bg-slate-50 transition">
-                            إلغاء / مسح
+                            مسح
                         </button>
                         <button type="submit" class="px-6 py-2.5 rounded-xl bg-brand-700 hover:bg-brand-800 text-white font-bold text-sm shadow-md transition flex items-center gap-2">
                             <i class="fa-solid fa-cloud-arrow-up"></i>
@@ -292,7 +263,7 @@
             </div>
         </section>
 
-        <!-- TAB 3: INVENTORY & SEARCH -->
+        <!-- TAB 3: INVENTORY -->
         <section id="tab-inventory" class="tab-content hidden space-y-5">
             <div class="bg-white rounded-2xl p-4 shadow-sm border border-slate-200/80 flex flex-col md:flex-row gap-3 items-center justify-between">
                 <div class="relative w-full md:w-80">
@@ -310,7 +281,7 @@
                     </select>
 
                     <button onclick="syncDataFromCloud()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold px-3 py-2 rounded-xl text-xs transition flex items-center gap-1.5 whitespace-nowrap">
-                        <i class="fa-solid fa-rotate"></i> مزامنة السحابة
+                        <i class="fa-solid fa-rotate"></i> تحديث السحابة
                     </button>
                 </div>
             </div>
@@ -319,7 +290,7 @@
 
             <div id="empty-inventory" class="hidden text-center py-12 bg-white rounded-2xl border border-dashed border-slate-300">
                 <i class="fa-solid fa-box-open text-5xl text-slate-300 mb-3"></i>
-                <h3 class="text-base font-bold text-slate-600">لا توجد ممتلكات مطابقة للبحث</h3>
+                <h3 class="text-base font-bold text-slate-600">لا توجد ممتلكات مطابقة</h3>
             </div>
         </section>
 
@@ -331,7 +302,7 @@
                         <i class="fa-solid fa-print text-brand-700"></i>
                         تخصيص وطباعة ملصقات الـ A4
                     </h2>
-                    <p class="text-xs text-slate-500 mt-1">تحديد الممتلكات المراد طباعتها على ورقة A4 بالأبعاد القياسية.</p>
+                    <p class="text-xs text-slate-500 mt-1">تحديد الممتلكات للطباعة على ورق A4.</p>
                 </div>
 
                 <div class="flex items-center gap-3 w-full md:w-auto justify-end">
@@ -346,7 +317,7 @@
 
             <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200/80">
                 <div class="no-print mb-4 flex justify-between items-center border-b pb-3">
-                    <span class="text-xs font-bold text-slate-600">معاينة التنسيق قبل الطباعة:</span>
+                    <span class="text-xs font-bold text-slate-600">معاينة قبل الطباعة:</span>
                     <span id="selected-count-badge" class="text-xs font-bold bg-amber-100 text-amber-800 px-3 py-1 rounded-full">المحدد: 0 ملصق</span>
                 </div>
                 <div id="a4-stickers-container" class="a4-print-grid flex flex-wrap gap-3 justify-start"></div>
@@ -360,7 +331,7 @@
                     <i class="fa-solid fa-qrcode text-xl"></i>
                 </div>
                 <h2 class="text-xl font-bold text-slate-800">ماسح رمز QR لدار سفوان</h2>
-                <p class="text-xs text-slate-500 mt-1">وجه الكاميرا نحو ملصق الممتلك لعرض بياناته الفورية من السحابة</p>
+                <p class="text-xs text-slate-500 mt-1">وجه الكاميرا نحو ملصق الممتلك لعرض بياناته من السحابة</p>
 
                 <div class="mt-4 relative rounded-2xl overflow-hidden bg-slate-900 border-2 border-brand-600">
                     <div id="reader" class="w-full min-h-[280px]"></div>
@@ -381,7 +352,7 @@
 
     <!-- ASSET DETAIL MODAL -->
     <div id="asset-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4 no-print">
-        <div class="bg-white rounded-3xl shadow-2xl max-w-md w-full overflow-hidden border border-slate-100 animate-fadeIn">
+        <div class="bg-white rounded-3xl shadow-2xl max-w-md w-full overflow-hidden border border-slate-100">
             <div class="bg-gradient-to-r from-brand-900 to-brand-800 text-white p-4 flex justify-between items-center">
                 <div class="flex items-center gap-2">
                     <i class="fa-solid fa-qrcodes text-amber-300 text-lg"></i>
@@ -448,13 +419,14 @@
 
     <!-- Footer -->
     <footer class="bg-white border-t border-slate-200 mt-10 py-4 text-center text-xs text-slate-500 no-print">
-        <p>جميع الحقوق محفوظة &copy; 2026 - <strong>دار سفوان القرآنية</strong> (ربط سحابي مباشر)</p>
+        <p>جميع الحقوق محفوظة &copy; 2026 - <strong>دار سفوان القرآنية</strong></p>
     </footer>
 
-    <!-- JavaScript Logic with Cloud Integration -->
+    <!-- JavaScript - Automatic Cloud Logic -->
     <script>
-        const CLOUD_BIN_URL = 'https://api.npoint.io/e05b76686d63428d09bc';
-        
+        // تم ربط الكود برابط سحابتك الخاص بك الذي أنشأته
+        const CLOUD_BIN_URL = 'https://api.npoint.io/bd6f4ec42f6bc61c49fd';
+
         let assets = [];
         let currentEditingAssetId = null;
         let html5QrCode = null;
@@ -462,13 +434,14 @@
 
         window.addEventListener('DOMContentLoaded', () => {
             syncDataFromCloud();
+            setInterval(syncDataFromCloud, 10000); // تحديث تلقائي كل 10 ثواني لمزامنة الهواتف
         });
 
         async function syncDataFromCloud() {
             setCloudStatus('جاري المزامنة...', 'bg-amber-400');
             try {
                 const response = await fetch(CLOUD_BIN_URL);
-                if (!response.ok) throw new Error('فشل الاتصال');
+                if (!response.ok) throw new Error('Network error');
                 const data = await response.json();
                 if (Array.isArray(data)) {
                     assets = data;
@@ -479,7 +452,6 @@
                 renderDashboard();
                 renderInventory();
                 setCloudStatus('متصل بالسحابة', 'bg-emerald-400');
-                showToast('تمت مزامنة البيانات من السحابة بنجاح');
             } catch (error) {
                 console.error(error);
                 const local = localStorage.getItem('sufwan_fallback_assets');
@@ -487,13 +459,12 @@
                 assets.forEach(a => selectedAssetIdsForPrint.add(a.id));
                 renderDashboard();
                 renderInventory();
-                setCloudStatus('وضع غير متصل (محلي)', 'bg-red-400');
-                showToast('تعذر الاتصال بالسحابة، يتم عرض النسخة المحلية', 'error');
+                setCloudStatus('وضع محلي (تأكد من النت)', 'bg-red-400');
             }
         }
 
         async function saveAssetsToCloud() {
-            setCloudStatus('جاري الحفظ...', 'bg-amber-400');
+            setCloudStatus('جاري الحفظ سحابياً...', 'bg-amber-400');
             localStorage.setItem('sufwan_fallback_assets', JSON.stringify(assets));
 
             try {
@@ -502,20 +473,21 @@
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(assets)
                 });
-                if (!response.ok) throw new Error('فشل الحفظ سحابياً');
+                if (!response.ok) throw new Error('Save error');
                 setCloudStatus('متصل بالسحابة', 'bg-emerald-400');
                 renderDashboard();
+                showToast('تم الحفظ في السحابة بنجاح!');
             } catch (error) {
                 console.error(error);
-                setCloudStatus('خطأ في الحفظ السحابي', 'bg-red-400');
-                showToast('تم الحفظ محلياً وتعذر الحفظ سحابياً', 'error');
+                setCloudStatus('تم الحفظ محلياً فقط', 'bg-amber-500');
+                showToast('حُفظ بالهاتف وتأكد من الاتصال بالسحابة', 'error');
             }
         }
 
         function setCloudStatus(text, dotColorClass) {
             document.getElementById('cloud-status-text').textContent = text;
             const dot = document.querySelector('#cloud-status span');
-            dot.className = `w-2 h-2 rounded-full ${dotColorClass} animate-pulse`;
+            if (dot) dot.className = `w-2 h-2 rounded-full ${dotColorClass} animate-pulse`;
         }
 
         function getSampleInitialData() {
@@ -526,18 +498,8 @@
                     location: 'القاعة الكبرى',
                     status: 'ممتاز',
                     category: 'أجهزة تبريد',
-                    notes: 'تمت الصيانة الدورية.',
+                    notes: 'تمت الصيانة.',
                     image: 'https://images.unsplash.com/photo-1621905251189-08b45d6a269e?w=300&auto=format&fit=crop&q=60',
-                    createdAt: new Date().toISOString()
-                },
-                {
-                    id: 'SQ-1002',
-                    name: 'شاشة عرض ذكية 65 بوصة',
-                    location: 'قاعة التحفيظ الأولى',
-                    status: 'جيد',
-                    category: 'إلكترونيات',
-                    notes: 'تستخدم لعرض الدروس.',
-                    image: 'https://images.unsplash.com/photo-1593359677879-a4bb92f829d1?w=300&auto=format&fit=crop&q=60',
                     createdAt: new Date().toISOString()
                 }
             ];
@@ -652,13 +614,11 @@
                 const index = assets.findIndex(a => a.id === currentEditingAssetId);
                 if (index !== -1) {
                     assets[index] = { ...assets[index], name, location, status, category, notes, image, updatedAt: new Date().toISOString() };
-                    showToast('تم تحديث البيانات بنجاح');
                 }
             } else {
                 const newAsset = { id: assetId, name, location, status, category, notes, image, createdAt: new Date().toISOString() };
                 assets.push(newAsset);
                 selectedAssetIdsForPrint.add(assetId);
-                showToast('تمت إضافة الممتلك وتوليد الملصق');
             }
 
             await saveAssetsToCloud();
@@ -753,7 +713,7 @@
             badge.textContent = `المحدد للطباعة: ${selectedAssetIdsForPrint.size} من أصل ${assets.length}`;
 
             if (assets.length === 0) {
-                container.innerHTML = `<p class="text-xs text-slate-400 col-span-full py-8 text-center">لا توجد أي ممتلكات مسجلة بعد للطباعة.</p>`;
+                container.innerHTML = `<p class="text-xs text-slate-400 col-span-full py-8 text-center">لا توجد ممتلكات مسجلة بعد للطباعة.</p>`;
                 return;
             }
 
@@ -901,12 +861,12 @@
         }
 
         async function confirmDeleteAsset(assetId) {
-            if (confirm(`هل أنت متأكد من حذف الممتلك (${assetId}) من السحابة؟`)) {
+            if (confirm(`هل أنت متأكد من حذف الممتلك (${assetId})؟`)) {
                 assets = assets.filter(a => a.id !== assetId);
                 selectedAssetIdsForPrint.delete(assetId);
                 await saveAssetsToCloud();
                 renderInventory();
-                showToast('تم حذف الممتلك بنجاح');
+                showToast('تم الحذف بنجاح');
             }
         }
 
@@ -941,7 +901,7 @@
             if (foundAsset) {
                 openAssetModal(foundAsset.id);
             } else {
-                alert(`رمز QR (${decodedText}) غير مسجل في قاعدة بيانات دار سفوان.`);
+                alert(`رمز QR (${decodedText}) غير مسجل في قاعدة البيانات.`);
             }
         }
 

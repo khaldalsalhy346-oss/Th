@@ -40,28 +40,66 @@
             position: relative;
             display: flex; 
             flex-direction: column;
-            padding: 1.5mm; /* حواشي داخلية مناسبة للحجم الجديد */
+            padding: 1.5mm; 
         }
 
+        /* إعدادات الطباعة الصارمة لمنع تصغير الحجم على الهواتف */
         @media print {
             .no-print { display: none !important; }
-            body { background: white !important; margin: 0 !important; padding: 0 !important; }
-            /* ضبط الهوامش لتستوعب 3 ملصقات بالعرض في ورقة A4 */
-            @page { size: A4 portrait; margin: 10mm 5mm; }
-            .a4-print-grid {
-                display: flex !important; flex-wrap: wrap !important;
-                gap: 2mm !important; justify-content: flex-start !important;
-                align-content: flex-start !important;
+            
+            body { 
+                background: white !important; 
+                margin: 0 !important; 
+                padding: 0 !important; 
+                width: 210mm !important; /* إجبار الصفحة على مقاس A4 */
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
             }
+            
+            @page { 
+                size: A4 portrait; 
+                margin: 10mm 5mm; 
+            }
+
+            /* إخفاء جميع التبويبات وإظهار تبويب الطباعة فقط */
+            header, footer, .tab-content:not(#tab-print-stickers) { display: none !important; }
+            #tab-print-stickers { display: block !important; }
+            
+            /* إزالة الحواشي والإطارات من الحاويات الأم لتجنب تداخل الطباعة */
+            #tab-print-stickers .bg-white,
+            #tab-print-stickers .rounded-2xl {
+                border: none !important;
+                box-shadow: none !important;
+                padding: 0 !important;
+                margin: 0 !important;
+                background: transparent !important;
+            }
+
+            /* تقسيم الصفحة إلى 3 أعمدة بالضبط */
+            .a4-print-grid {
+                display: grid !important;
+                grid-template-columns: repeat(3, 65mm) !important; 
+                gap: 2mm !important;
+                justify-content: center !important;
+                width: 100% !important;
+            }
+
+            /* تنسيق الملصق نفسه */
             .sticker-card {
-                border: 1px dashed #86efac !important; /* إطار أخضر فاتح كما في الصورة */
-                border-radius: 2mm !important;
-                box-shadow: none !important; 
-                background: white !important;
                 width: 65mm !important;
                 height: 30mm !important;
+                border: 1px dashed #166534 !important; /* الإطار الأخضر المتقطع */
+                border-radius: 2mm !important;
                 padding: 1.5mm !important;
+                box-sizing: border-box !important;
+                background: white !important;
+                page-break-inside: avoid !important;
+                display: flex !important;
+                flex-direction: column !important;
+                overflow: hidden !important;
             }
+            
+            img { max-width: 100% !important; height: auto !important; }
         }
 
         .welcome-modal-badge {
@@ -97,7 +135,7 @@
 
                 <div class="cursor-pointer" onclick="switchTab('dashboard')">
                     <h1 class="text-xl font-bold tracking-tight text-amber-100">دار سفوان القرآنية</h1>
-                    <p class="text-xs text-emerald-200">نظام إدارة وتوثيق الممتلكات الرقمي</p>
+                    <p class="text-xs text-emerald-200">نظام إدارة وتوثيق الممتلكات الرقمية</p>
                 </div>
             </div>
 
@@ -336,7 +374,7 @@
                 </div>
 
                 <!-- شريط معلومات الرابط المُضمَّن -->
-                <div class="bg-blue-50/60 border border-blue-200 rounded-xl p-3 text-xs">
+                <div class="bg-blue-50/60 border border-blue-200 rounded-xl p-3 text-xs no-print">
                     <div class="flex items-start gap-2">
                         <i class="fa-solid fa-circle-info text-blue-600 mt-0.5"></i>
                         <div class="flex-1 min-w-0">
@@ -483,9 +521,6 @@
             // شعار
             currentLogo = localStorage.getItem(LOGO_KEY);
             applyLogo();
-
-            // فحص رابط QR بعد تحميل الصفحة (إذا وُجد ?asset=)
-            // سيتم التنفيذ بعد تحميل الممتلكات
 
             if (USE_FIREBASE) {
                 try {
@@ -1005,7 +1040,7 @@
             });
         }
 
-        // ================= STICKER BUILDER (التصميم الأفقي الجديد) =================
+        // ================= STICKER BUILDER (تم وضع اسم المنتج بدلاً من سبيل) =================
         function buildStickerHTML(asset, qrContainerId, showCheckbox) {
             const isSelected = selectedAssetIdsForPrint.has(asset.id);
             const logoSrc = currentLogo || '';
@@ -1027,11 +1062,12 @@
                                 </div>
                                 <p class="text-[9px] text-emerald-900 font-extrabold leading-none tracking-tight">دار سفوان القرآنية</p>
                             </div>
-                            <p class="text-[9px] text-emerald-700 font-bold leading-none mt-0.5 mr-[18px]">سبيل</p>
+                            <!-- تم استبدال كلمة سبيل باسم المنتج هنا -->
+                            <p class="text-[9.5px] text-slate-800 font-extrabold leading-tight mt-1 mr-[2px] truncate" title="${asset.name}">${asset.name}</p>
                         </div>
 
                         <div class="mt-auto mr-1">
-                            <p class="text-slate-800 font-bold truncate" style="font-size:9.5px;">${asset.location}</p>
+                            <p class="text-slate-600 font-bold truncate" style="font-size:9px;">${asset.location}</p>
                             <span class="text-amber-600 font-mono font-extrabold" style="font-size:9px; line-height:1;">${asset.id}</span>
                         </div>
                     </div>
@@ -1094,8 +1130,8 @@
                         el.innerHTML = '';
                         new QRCode(el, {
                             text: getAssetQrContent(asset.id),  // ★ رابط ذكي
-                            width: 50,  // تم تعديل الحجم ليتناسب مع الملصق الأفقي
-                            height: 50, // تم تعديل الحجم ليتناسب مع الملصق الأفقي
+                            width: 50,  // حجم مناسب للملصق الأفقي
+                            height: 50, // حجم مناسب للملصق الأفقي
                             colorDark: "#14532d",
                             colorLight: "#ffffff",
                             correctLevel: QRCode.CorrectLevel.M
@@ -1150,8 +1186,8 @@
                     el.innerHTML = '';
                     new QRCode(el, {
                         text: getAssetQrContent(asset.id),  // ★ رابط ذكي
-                        width: 50, // تم تعديل الحجم
-                        height: 50, // تم تعديل الحجم
+                        width: 50, // حجم مناسب
+                        height: 50, // حجم مناسب
                         colorDark: "#14532d",
                         colorLight: "#ffffff",
                         correctLevel: QRCode.CorrectLevel.M

@@ -148,7 +148,7 @@
                 <button onclick="switchTab('dashboard')" id="nav-dashboard" class="px-3 py-2 rounded-lg flex items-center gap-2 transition-all bg-brand-700 text-amber-300 shadow-sm">
                     <i class="fa-solid fa-chart-pie"></i><span>الرئيسية</span>
                 </button>
-                <button onclick="switchTab('add-asset')" id="nav-add-asset" class="px-3 py-2 rounded-lg flex items-center gap-2 transition-all hover:bg-brand-700/60 text-slate-100">
+                <button onclick="requireAuth(() => switchTab('add-asset'))" id="nav-add-asset" class="px-3 py-2 rounded-lg flex items-center gap-2 transition-all hover:bg-brand-700/60 text-slate-100">
                     <i class="fa-solid fa-plus-circle"></i><span>إضافة ممتلك</span>
                 </button>
                 <button onclick="switchTab('inventory')" id="nav-inventory" class="px-3 py-2 rounded-lg flex items-center gap-2 transition-all hover:bg-brand-700/60 text-slate-100">
@@ -159,6 +159,11 @@
                 </button>
                 <button onclick="switchTab('scanner')" id="nav-scanner" class="px-3 py-2 rounded-lg flex items-center gap-2 transition-all hover:bg-brand-700/60 text-slate-100">
                     <i class="fa-solid fa-qrcode"></i><span>ماسح QR</span>
+                </button>
+                <button id="auth-lock-btn" onclick="toggleAuthLock()" title="قفل/فتح وضع الإدارة"
+                    class="px-3 py-2 rounded-lg flex items-center gap-2 transition-all bg-slate-700/60 hover:bg-slate-700 text-slate-100 border border-slate-500/40">
+                    <i id="auth-lock-icon" class="fa-solid fa-lock text-amber-300"></i>
+                    <span id="auth-lock-text" class="text-xs">مقفل</span>
                 </button>
             </nav>
         </div>
@@ -181,13 +186,13 @@
                         كل ملصق QR يحتوي على رابط ذكي — عند مسحه بأي كاميرا هاتف عادية، سيُفتح التطبيق تلقائياً ويعرض صورة الممتلك واسمه وكوده ومكانه. الشعار والبيانات تُزامَن لحظياً بين جميع الأجهزة عبر السحابة.
                     </p>
                     <div class="mt-5 flex flex-wrap gap-3">
-                        <button onclick="switchTab('add-asset')" class="bg-amber-500 hover:bg-amber-600 text-brand-900 font-bold px-4 py-2.5 rounded-xl shadow transition flex items-center gap-2 text-sm">
+                        <button onclick="requireAuth(() => switchTab('add-asset'))" class="bg-amber-500 hover:bg-amber-600 text-brand-900 font-bold px-4 py-2.5 rounded-xl shadow transition flex items-center gap-2 text-sm">
                             <i class="fa-solid fa-plus"></i> إضافة ممتلك جديد
                         </button>
                         <button onclick="switchTab('print-stickers')" class="bg-white/10 hover:bg-white/20 text-white font-medium px-4 py-2.5 rounded-xl shadow backdrop-blur-sm transition flex items-center gap-2 text-sm border border-white/20">
                             <i class="fa-solid fa-print text-amber-300"></i> طباعة ملصقات الـ A4
                         </button>
-                        <button onclick="document.getElementById('logo-input').click()" class="bg-white/10 hover:bg-white/20 text-white font-medium px-4 py-2.5 rounded-xl shadow backdrop-blur-sm transition flex items-center gap-2 text-sm border border-white/20">
+                        <button onclick="requireAuth(() => document.getElementById('logo-input').click())" class="bg-white/10 hover:bg-white/20 text-white font-medium px-4 py-2.5 rounded-xl shadow backdrop-blur-sm transition flex items-center gap-2 text-sm border border-white/20">
                             <i class="fa-solid fa-cloud-arrow-up text-amber-300"></i> تغيير الشعار (سحابياً)
                         </button>
                     </div>
@@ -335,7 +340,7 @@
                         <option value="جيد">جيد</option>
                         <option value="يحتاج صيانة">يحتاج صيانة</option>
                     </select>
-                    <button onclick="exportDataJSON()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold px-3 py-2 rounded-xl text-xs transition flex items-center gap-1.5 whitespace-nowrap">
+                    <button onclick="requireAuth(exportDataJSON)" class="bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold px-3 py-2 rounded-xl text-xs transition flex items-center gap-1.5 whitespace-nowrap">
                         <i class="fa-solid fa-download"></i> تصدير نسخ احتياطي
                     </button>
                 </div>
@@ -366,7 +371,7 @@
                         <button onclick="setQrBaseUrl()" class="px-3.5 py-2 rounded-xl bg-blue-50 hover:bg-blue-100 text-blue-800 border border-blue-200 font-bold text-xs transition flex items-center gap-1.5">
                             <i class="fa-solid fa-link"></i> رابط QR
                         </button>
-                        <button onclick="document.getElementById('logo-input').click()" class="px-3.5 py-2 rounded-xl bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-200 font-bold text-xs transition flex items-center gap-1.5">
+                        <button onclick="requireAuth(() => document.getElementById('logo-input').click())" class="px-3.5 py-2 rounded-xl bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-200 font-bold text-xs transition flex items-center gap-1.5">
                             <i class="fa-solid fa-cloud-arrow-up"></i> تغيير الشعار
                         </button>
                         <button onclick="toggleSelectAllStickers()" class="px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs transition">
@@ -489,11 +494,132 @@
         </div>
     </div>
 
+    <!-- PIN AUTH MODAL -->
+    <div id="pin-modal" class="fixed inset-0 bg-slate-900/80 backdrop-blur-sm z-[60] hidden flex items-center justify-center p-4 no-print">
+        <div class="bg-white rounded-3xl shadow-2xl max-w-sm w-full overflow-hidden border border-slate-100">
+            <div class="bg-gradient-to-r from-brand-900 to-brand-800 text-white p-4 flex items-center justify-between">
+                <div class="flex items-center gap-2">
+                    <i class="fa-solid fa-shield-halved text-amber-300"></i>
+                    <h3 class="font-bold text-sm">التحقق من الصلاحية الإدارية</h3>
+                </div>
+                <button onclick="closePinModal()" class="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-white transition">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+            <div class="p-5 space-y-3">
+                <div class="text-center">
+                    <div class="w-14 h-14 mx-auto rounded-full bg-amber-100 text-amber-700 flex items-center justify-center mb-2">
+                        <i class="fa-solid fa-lock text-xl"></i>
+                    </div>
+                    <p class="text-xs text-slate-600 leading-relaxed">
+                        هذه العملية <strong>محمية</strong>. يرجى إدخال الرمز السري للمتابعة.
+                        <br>
+                        <span class="text-[10px] text-slate-400">(يبقى التحقق فعّالاً حتى إغلاق المتصفح)</span>
+                    </p>
+                </div>
+                <input type="password" id="pin-input" inputmode="numeric" autocomplete="off"
+                    onkeydown="if(event.key==='Enter'){event.preventDefault();submitPin();}"
+                    placeholder="••••••••"
+                    class="w-full border border-slate-300 rounded-xl px-4 py-3 text-center text-2xl tracking-[0.4em] font-mono focus:ring-2 focus:ring-brand-600 focus:outline-none transition">
+                <p id="pin-error" class="hidden text-xs text-red-600 text-center font-semibold">
+                    <i class="fa-solid fa-circle-exclamation"></i> الرمز غير صحيح، حاول مرة أخرى.
+                </p>
+                <div class="flex gap-2 pt-1">
+                    <button onclick="closePinModal()" class="flex-1 px-4 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-sm transition">إلغاء</button>
+                    <button onclick="submitPin()" class="flex-1 px-4 py-2.5 rounded-xl bg-brand-700 hover:bg-brand-800 text-white font-bold text-sm shadow transition flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-unlock"></i> تأكيد
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <footer class="bg-white border-t border-slate-200 mt-10 py-4 text-center text-xs text-slate-500 no-print">
         <p>جميع الحقوق محفوظة &copy; 2026 - <strong>دار سفوان القرآنية</strong></p>
     </footer>
 
     <script>
+        // ================= AUTH (PIN) =================
+        const AUTH_PIN = '90901212';
+        const AUTH_KEY = 'sufwan_admin_auth_v1';
+        let pendingAuthAction = null;
+
+        function isAuthed() {
+            return sessionStorage.getItem(AUTH_KEY) === 'true';
+        }
+
+        function requireAuth(action) {
+            if (isAuthed()) {
+                if (typeof action === 'function') action();
+                return true;
+            }
+            pendingAuthAction = action;
+            showPinModal();
+            return false;
+        }
+
+        function showPinModal() {
+            const modal = document.getElementById('pin-modal');
+            const input = document.getElementById('pin-input');
+            const err = document.getElementById('pin-error');
+            input.value = '';
+            err.classList.add('hidden');
+            modal.classList.remove('hidden');
+            setTimeout(() => input.focus(), 120);
+        }
+
+        function closePinModal() {
+            document.getElementById('pin-modal').classList.add('hidden');
+            pendingAuthAction = null;
+        }
+
+        function submitPin() {
+            const input = document.getElementById('pin-input');
+            const err = document.getElementById('pin-error');
+            const val = input.value.trim();
+
+            if (val === AUTH_PIN) {
+                sessionStorage.setItem(AUTH_KEY, 'true');
+                updateAuthBadge();
+                document.getElementById('pin-modal').classList.add('hidden');
+                showToast('تم التحقق من الصلاحية الإدارية ✓');
+                const action = pendingAuthAction;
+                pendingAuthAction = null;
+                if (typeof action === 'function') setTimeout(action, 200);
+            } else {
+                err.classList.remove('hidden');
+                input.value = '';
+                input.focus();
+            }
+        }
+
+        function toggleAuthLock() {
+            if (isAuthed()) {
+                if (!confirm('هل تريد قفل وضع الإدارة الآن؟\nسيُطلب الرمز عند أي عملية إضافة/تعديل/حذف.')) return;
+                sessionStorage.removeItem(AUTH_KEY);
+                updateAuthBadge();
+                showToast('تم قفل وضع الإدارة');
+            } else {
+                requireAuth(() => showToast('وضع الإدارة مفتوح'));
+            }
+        }
+
+        function updateAuthBadge() {
+            const icon = document.getElementById('auth-lock-icon');
+            const text = document.getElementById('auth-lock-text');
+            const btn = document.getElementById('auth-lock-btn');
+            if (!icon || !text || !btn) return;
+            if (isAuthed()) {
+                icon.className = 'fa-solid fa-lock-open text-emerald-300';
+                text.textContent = 'مفتوح';
+                btn.className = 'px-3 py-2 rounded-lg flex items-center gap-2 transition-all bg-emerald-700/60 hover:bg-emerald-700 text-white border border-emerald-400/40';
+            } else {
+                icon.className = 'fa-solid fa-lock text-amber-300';
+                text.textContent = 'مقفل';
+                btn.className = 'px-3 py-2 rounded-lg flex items-center gap-2 transition-all bg-slate-700/60 hover:bg-slate-700 text-slate-100 border border-slate-500/40';
+            }
+        }
+
         // ================= Firebase Config =================
         const firebaseConfig = {
             apiKey: "AIzaSyCrqzZ4wCIWCGtGdH4CGUIXbqnnNPePFpY",
@@ -528,9 +654,9 @@
 
         // ================= Init =================
         window.addEventListener('DOMContentLoaded', () => {
-            // ابدأ من الكاش المحلي (سريع)، ثم السحابة تُحدّث الشعار لحظياً
             currentLogo = localStorage.getItem(LOGO_KEY);
             applyLogo();
+            updateAuthBadge();
 
             if (USE_FIREBASE) {
                 try {
@@ -720,6 +846,12 @@
         }
 
         async function handleLogoUpload(event) {
+            if (!isAuthed()) {
+                showToast('انتهت صلاحية الجلسة، يرجى إدخال الرمز', 'error');
+                requireAuth(null);
+                event.target.value = '';
+                return;
+            }
             const file = event.target.files[0];
             if (!file) return;
             if (!file.type.startsWith('image/')) { showToast('الرجاء اختيار ملف صورة صحيح', 'error'); return; }
@@ -728,10 +860,8 @@
             const reader = new FileReader();
             reader.onload = async (e) => {
                 try {
-                    // ضغط أقوى للشعار (حتى يدخل بسهولة في مستند Firestore)
                     const compressed = await compressImage(e.target.result, 260, 0.8);
 
-                    // حفظ في السحابة أولاً (المرجع الأساسي)
                     let cloudSaved = false;
                     if (USE_FIREBASE && db) {
                         try {
@@ -748,7 +878,6 @@
                         }
                     }
 
-                    // حفظ محلي ككاش للتحميل السريع
                     localStorage.setItem(LOGO_KEY, compressed);
                     currentLogo = compressed;
                     applyLogo();
@@ -768,10 +897,13 @@
 
         async function removeLogo(event) {
             if (event) event.stopPropagation();
+            if (!isAuthed()) {
+                requireAuth(null);
+                return;
+            }
             if (!currentLogo) return;
             if (!confirm('هل تريد إزالة الشعار المخصص من جميع الأجهزة؟')) return;
 
-            // إزالة من السحابة
             if (USE_FIREBASE && db) {
                 try {
                     await db.collection(SETTINGS_COLLECTION).doc(SETTINGS_DOC).set({
@@ -784,7 +916,6 @@
                 }
             }
 
-            // إزالة محلية
             localStorage.removeItem(LOGO_KEY);
             currentLogo = null;
             applyLogo();
@@ -797,7 +928,6 @@
 
         // ================= Firebase Realtime =================
         function startRealtimeSync() {
-            // 1) مزامنة الممتلكات
             db.collection(ASSETS_COLLECTION).orderBy('createdAt').onSnapshot(snapshot => {
                 const previousIds = new Set(assets.map(a => a.id));
                 assets = snapshot.docs.map(d => ({ ...d.data(), id: d.id }));
@@ -826,12 +956,10 @@
                 tryOpenAssetFromUrl();
             });
 
-            // 2) مزامنة الشعار (مستند الإعدادات)
             db.collection(SETTINGS_COLLECTION).doc(SETTINGS_DOC).onSnapshot(snap => {
                 const remoteLogo = (snap.exists && snap.data().logoBase64) ? snap.data().logoBase64 : null;
                 const cachedLogo = localStorage.getItem(LOGO_KEY);
 
-                // تحديث الشعار على كل الأجهزة لحظياً
                 if (remoteLogo !== currentLogo) {
                     currentLogo = remoteLogo;
                     if (remoteLogo) localStorage.setItem(LOGO_KEY, remoteLogo);
@@ -851,7 +979,6 @@
                 }
             }, err => {
                 console.error('Settings sync error:', err);
-                // في حال عدم وجود مستند الإعدادات بعد، لا مشكلة
                 if (err.code !== 'not-found' && err.code !== 'permission-denied') {
                     showToast('تعذر مزامنة الشعار: ' + err.code, 'error');
                 }
@@ -1066,6 +1193,13 @@
         // ================= Save/Edit =================
         async function handleSaveAsset(event) {
             event.preventDefault();
+
+            if (!isAuthed()) {
+                showToast('انتهت صلاحية الجلسة، يرجى إدخال الرمز', 'error');
+                requireAuth(null);
+                return;
+            }
+
             const submitBtn = event.target.querySelector('button[type="submit"]');
             const name = document.getElementById('asset-name').value.trim();
             const location = document.getElementById('asset-location').value.trim();
@@ -1341,6 +1475,10 @@
         }
 
         function prepareEditAsset(assetId) {
+            if (!isAuthed()) {
+                requireAuth(() => prepareEditAsset(assetId));
+                return;
+            }
             closeModal();
             const asset = assets.find(a => a.id === assetId);
             if (!asset) return;
@@ -1368,6 +1506,10 @@
         }
 
         async function confirmDeleteAsset(assetId) {
+            if (!isAuthed()) {
+                requireAuth(() => confirmDeleteAsset(assetId));
+                return;
+            }
             if (!confirm(`هل أنت متأكد من حذف الممتلك (${assetId})؟`)) return;
             try {
                 if (USE_FIREBASE) await db.collection(ASSETS_COLLECTION).doc(assetId).delete();
@@ -1382,7 +1524,15 @@
         }
 
         function deleteAssetFromModal() {
-            if (currentEditingAssetId) { confirmDeleteAsset(currentEditingAssetId); closeModal(); }
+            if (!currentEditingAssetId) return;
+            if (!isAuthed()) {
+                const id = currentEditingAssetId;
+                requireAuth(() => { closeModal(); confirmDeleteAsset(id); });
+                return;
+            }
+            const id = currentEditingAssetId;
+            closeModal();
+            confirmDeleteAsset(id);
         }
 
         // ================= Scanner =================

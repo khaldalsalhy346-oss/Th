@@ -32,7 +32,6 @@
     <style>
         body { font-family: 'Cairo', sans-serif; background-color: #f8fafc; }
 
-        /* التصميم على الشاشة */
         .sticker-card {
             width: 62mm;
             height: 30mm;
@@ -46,7 +45,6 @@
             border-radius: 2mm;
         }
 
-        /* إعدادات الطباعة الصارمة */
         @media print {
             .no-print { display: none !important; }
 
@@ -68,7 +66,6 @@
 
             #tab-print-stickers { display: block !important; }
 
-            /* استثناء الملصق نفسه من إلغاء الحدود والحشو */
             #tab-print-stickers .bg-white:not(.sticker-card),
             #tab-print-stickers .rounded-2xl:not(.sticker-card) {
                 border: none !important;
@@ -86,7 +83,6 @@
                 width: 100% !important;
             }
 
-            /* إطار القص حول كل ملصق */
             .sticker-card {
                 border: 1.5px dashed #000000 !important;
                 -webkit-print-color-adjust: exact !important;
@@ -105,6 +101,14 @@
             0%, 100% { opacity: 1; }
             50% { opacity: 0.6; }
         }
+
+        .logo-sync-badge {
+            animation: cloudPulse 1.5s infinite;
+        }
+        @keyframes cloudPulse {
+            0%, 100% { opacity: 0.7; }
+            50% { opacity: 1; }
+        }
     </style>
 </head>
 <body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col justify-between selection:bg-brand-600 selection:text-white">
@@ -114,7 +118,7 @@
         <div class="max-w-7xl mx-auto px-4 py-3 flex flex-wrap justify-between items-center gap-2">
             <div class="flex items-center space-x-3 space-x-reverse">
                 <div class="relative">
-                    <div id="brand-logo-container" onclick="document.getElementById('logo-input').click()" title="اضغط لتغيير شعار الدار"
+                    <div id="brand-logo-container" onclick="document.getElementById('logo-input').click()" title="اضغط لتغيير شعار الدار (يُزامَن مع جميع الأجهزة)"
                          class="w-12 h-12 bg-emerald-800 rounded-full flex items-center justify-center border-2 border-amber-400 shadow-inner overflow-hidden cursor-pointer relative group">
                         <i id="brand-logo-icon" class="fa-solid fa-book-quran text-amber-300 text-xl"></i>
                         <img id="brand-logo-img" class="w-full h-full object-cover hidden" src="" alt="شعار الدار">
@@ -122,7 +126,7 @@
                             <i class="fa-solid fa-camera text-white text-sm"></i>
                         </div>
                     </div>
-                    <button id="reset-logo-btn" onclick="removeLogo(event)" title="إزالة الشعار المخصص"
+                    <button id="reset-logo-btn" onclick="removeLogo(event)" title="إزالة الشعار المخصص من جميع الأجهزة"
                             class="hidden absolute -top-1 -left-1 w-5 h-5 bg-red-500 hover:bg-red-600 text-white rounded-full flex items-center justify-center text-[10px] shadow border-2 border-white">
                         <i class="fa-solid fa-xmark"></i>
                     </button>
@@ -131,7 +135,12 @@
 
                 <div class="cursor-pointer" onclick="switchTab('dashboard')">
                     <h1 class="text-xl font-bold tracking-tight text-amber-100">دار سفوان القرآنية</h1>
-                    <p class="text-xs text-emerald-200">نظام إدارة وتوثيق الممتلكات الرقمي</p>
+                    <p class="text-xs text-emerald-200 flex items-center gap-1.5">
+                        <span>نظام إدارة وتوثيق الممتلكات الرقمي</span>
+                        <span id="cloud-status-badge" class="hidden text-[10px] bg-sky-500/20 text-sky-200 px-1.5 py-0.5 rounded-full border border-sky-400/40 logo-sync-badge">
+                            <i class="fa-solid fa-cloud"></i> سحابي
+                        </span>
+                    </p>
                 </div>
             </div>
 
@@ -169,7 +178,7 @@
                     <span class="bg-amber-500/20 text-amber-300 text-xs font-semibold px-3 py-1 rounded-full border border-amber-400/30">أهلاً بكم في المنظومة الرقمية</span>
                     <h2 class="text-2xl md:text-3xl font-extrabold mt-2 text-amber-50">لوحة التحكم وإحصائيات الممتلكات</h2>
                     <p class="text-emerald-100 text-sm mt-2 leading-relaxed">
-                        كل ملصق QR يحتوي على رابط ذكي — عند مسحه بأي كاميرا هاتف عادية، سيُفتح التطبيق تلقائياً ويعرض صورة الممتلك واسمه وكوده ومكانه.
+                        كل ملصق QR يحتوي على رابط ذكي — عند مسحه بأي كاميرا هاتف عادية، سيُفتح التطبيق تلقائياً ويعرض صورة الممتلك واسمه وكوده ومكانه. الشعار والبيانات تُزامَن لحظياً بين جميع الأجهزة عبر السحابة.
                     </p>
                     <div class="mt-5 flex flex-wrap gap-3">
                         <button onclick="switchTab('add-asset')" class="bg-amber-500 hover:bg-amber-600 text-brand-900 font-bold px-4 py-2.5 rounded-xl shadow transition flex items-center gap-2 text-sm">
@@ -179,7 +188,7 @@
                             <i class="fa-solid fa-print text-amber-300"></i> طباعة ملصقات الـ A4
                         </button>
                         <button onclick="document.getElementById('logo-input').click()" class="bg-white/10 hover:bg-white/20 text-white font-medium px-4 py-2.5 rounded-xl shadow backdrop-blur-sm transition flex items-center gap-2 text-sm border border-white/20">
-                            <i class="fa-solid fa-image text-amber-300"></i> تغيير شعار الدار
+                            <i class="fa-solid fa-cloud-arrow-up text-amber-300"></i> تغيير الشعار (سحابياً)
                         </button>
                     </div>
                 </div>
@@ -358,7 +367,7 @@
                             <i class="fa-solid fa-link"></i> رابط QR
                         </button>
                         <button onclick="document.getElementById('logo-input').click()" class="px-3.5 py-2 rounded-xl bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-200 font-bold text-xs transition flex items-center gap-1.5">
-                            <i class="fa-solid fa-image"></i> تغيير الشعار
+                            <i class="fa-solid fa-cloud-arrow-up"></i> تغيير الشعار
                         </button>
                         <button onclick="toggleSelectAllStickers()" class="px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs transition">
                             تحديد / إلغاء الكل
@@ -500,6 +509,8 @@
         const LOGO_KEY = 'sufwan_quran_custom_logo_v1';
         const BASE_URL_KEY = 'sufwan_quran_public_base_url_v1';
         const ASSETS_COLLECTION = 'assets';
+        const SETTINGS_COLLECTION = 'meta';
+        const SETTINGS_DOC = 'branding';
 
         let USE_FIREBASE = !Object.values(firebaseConfig).some(v => String(v).includes('YOUR_'));
         let db = null;
@@ -509,6 +520,7 @@
         let html5QrCode = null;
         let selectedAssetIdsForPrint = new Set();
         let currentLogo = null;
+        let logoLoadedFromCloud = false;
 
         let firebaseReady = false;
         let urlParamHandled = false;
@@ -516,6 +528,7 @@
 
         // ================= Init =================
         window.addEventListener('DOMContentLoaded', () => {
+            // ابدأ من الكاش المحلي (سريع)، ثم السحابة تُحدّث الشعار لحظياً
             currentLogo = localStorage.getItem(LOGO_KEY);
             applyLogo();
 
@@ -682,7 +695,7 @@
             }
         }
 
-        // ================= Logo =================
+        // ================= Logo (Cloud Sync) =================
         function applyLogo() {
             const icon = document.getElementById('brand-logo-icon');
             const img = document.getElementById('brand-logo-img');
@@ -699,6 +712,13 @@
             }
         }
 
+        function setCloudBadge(active) {
+            const badge = document.getElementById('cloud-status-badge');
+            if (!badge) return;
+            if (active) badge.classList.remove('hidden');
+            else badge.classList.add('hidden');
+        }
+
         async function handleLogoUpload(event) {
             const file = event.target.files[0];
             if (!file) return;
@@ -708,15 +728,37 @@
             const reader = new FileReader();
             reader.onload = async (e) => {
                 try {
-                    const compressed = await compressImage(e.target.result, 300, 0.85);
+                    // ضغط أقوى للشعار (حتى يدخل بسهولة في مستند Firestore)
+                    const compressed = await compressImage(e.target.result, 260, 0.8);
+
+                    // حفظ في السحابة أولاً (المرجع الأساسي)
+                    let cloudSaved = false;
+                    if (USE_FIREBASE && db) {
+                        try {
+                            await db.collection(SETTINGS_COLLECTION).doc(SETTINGS_DOC).set({
+                                logoBase64: compressed,
+                                updatedAt: new Date().toISOString(),
+                                updatedBy: 'admin'
+                            }, { merge: true });
+                            cloudSaved = true;
+                            setCloudBadge(true);
+                        } catch (err) {
+                            console.error('Firestore logo save error:', err);
+                            showToast('تم الحفظ محلياً فقط — تعذر المزامنة السحابية', 'error');
+                        }
+                    }
+
+                    // حفظ محلي ككاش للتحميل السريع
                     localStorage.setItem(LOGO_KEY, compressed);
                     currentLogo = compressed;
                     applyLogo();
+
                     if (!document.getElementById('tab-print-stickers').classList.contains('hidden')) {
                         renderPrintStickersPage();
                     }
-                    showToast('تم تحديث شعار الدار بنجاح');
+                    showToast(cloudSaved ? 'تم تحديث الشعار ومزامنته سحابياً' : 'تم تحديث الشعار محلياً');
                 } catch (err) {
+                    console.error(err);
                     showToast('تعذر معالجة صورة الشعار', 'error');
                 }
             };
@@ -724,21 +766,38 @@
             event.target.value = '';
         }
 
-        function removeLogo(event) {
+        async function removeLogo(event) {
             if (event) event.stopPropagation();
             if (!currentLogo) return;
-            if (!confirm('هل تريد إزالة الشعار المخصص والعودة للشعار الافتراضي؟')) return;
+            if (!confirm('هل تريد إزالة الشعار المخصص من جميع الأجهزة؟')) return;
+
+            // إزالة من السحابة
+            if (USE_FIREBASE && db) {
+                try {
+                    await db.collection(SETTINGS_COLLECTION).doc(SETTINGS_DOC).set({
+                        logoBase64: null,
+                        updatedAt: new Date().toISOString()
+                    }, { merge: true });
+                } catch (err) {
+                    console.error('Firestore logo delete error:', err);
+                    showToast('تعذر الحذف من السحابة', 'error');
+                }
+            }
+
+            // إزالة محلية
             localStorage.removeItem(LOGO_KEY);
             currentLogo = null;
             applyLogo();
+
             if (!document.getElementById('tab-print-stickers').classList.contains('hidden')) {
                 renderPrintStickersPage();
             }
-            showToast('تمت إزالة الشعار المخصص');
+            showToast('تمت إزالة الشعار من جميع الأجهزة');
         }
 
         // ================= Firebase Realtime =================
         function startRealtimeSync() {
+            // 1) مزامنة الممتلكات
             db.collection(ASSETS_COLLECTION).orderBy('createdAt').onSnapshot(snapshot => {
                 const previousIds = new Set(assets.map(a => a.id));
                 assets = snapshot.docs.map(d => ({ ...d.data(), id: d.id }));
@@ -751,6 +810,7 @@
                 });
                 firstSnapshot = false;
                 firebaseReady = true;
+                setCloudBadge(true);
 
                 renderDashboard();
                 renderInventory();
@@ -761,8 +821,40 @@
             }, err => {
                 console.error('Firestore error:', err);
                 firebaseReady = true;
+                setCloudBadge(false);
                 showToast('خطأ في الاتصال بقاعدة البيانات: ' + err.code, 'error');
                 tryOpenAssetFromUrl();
+            });
+
+            // 2) مزامنة الشعار (مستند الإعدادات)
+            db.collection(SETTINGS_COLLECTION).doc(SETTINGS_DOC).onSnapshot(snap => {
+                const remoteLogo = (snap.exists && snap.data().logoBase64) ? snap.data().logoBase64 : null;
+                const cachedLogo = localStorage.getItem(LOGO_KEY);
+
+                // تحديث الشعار على كل الأجهزة لحظياً
+                if (remoteLogo !== currentLogo) {
+                    currentLogo = remoteLogo;
+                    if (remoteLogo) localStorage.setItem(LOGO_KEY, remoteLogo);
+                    else localStorage.removeItem(LOGO_KEY);
+
+                    applyLogo();
+                    logoLoadedFromCloud = true;
+
+                    if (!document.getElementById('tab-print-stickers').classList.contains('hidden')) {
+                        renderPrintStickersPage();
+                    }
+                    if (remoteLogo && remoteLogo !== cachedLogo) {
+                        showToast('تم تحديث شعار الدار من السحابة');
+                    }
+                } else {
+                    logoLoadedFromCloud = true;
+                }
+            }, err => {
+                console.error('Settings sync error:', err);
+                // في حال عدم وجود مستند الإعدادات بعد، لا مشكلة
+                if (err.code !== 'not-found' && err.code !== 'permission-denied') {
+                    showToast('تعذر مزامنة الشعار: ' + err.code, 'error');
+                }
             });
         }
 

@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ممتلكات دار سفوان القرآنية</title>
+    <!-- Tailwind CSS للتحسين والتصميم -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- مكتبة توليد QR Code -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <!-- مكتبة قراءة الباركود عبر الكاميرا -->
+    <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
+    <!-- مكتبات Firebase للربط السحابي -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc, updateDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+        // إعدادات Firebase الخاصة بك المنسوخة من حسابك
+        const firebaseConfig = {
+            apiKey: "AizaSyBQT4vsYF0SLAQudRQbMSgTGdYpqnV05M",
+            authDomain: "safwan-assets.firebaseapp.com",
+            projectId: "safwan-assets",
+            storageBucket: "safwan-assets.appspot.com",
+            messagingSenderId: "925142260680",
+            appId: "1:925142260680:web:9589b7da5cea6953efd",
+            measurementId: "G-ZRZS1RHZB4"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        window.db = db;
+        window.collection = collection;
+        window.addDoc = addDoc;
+        window.getDocs = getDocs;
+        window.deleteDoc = deleteDoc;
+        window.doc = doc;
+        window.updateDoc = updateDoc;
+        
+        // تشغيل دالة الجلب عند تحميل الصفحة
+        if(window.loadAssetsCloud) window.loadAssetsCloud();
+    </script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&display=swap');
+        body { font-family: 'Cairo', sans-serif; }
+        @media print {
+            .no-print { display: none !important; }
+            body { background: white !important; }
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 min-h-screen">
+
+    <!-- رأس الصفحة -->
+    <header class="bg-emerald-800 text-white shadow-md no-print">
+        <div class="container mx-auto px-4 py-4 flex flex-col md:flex-row justify-between items-center">
+            <div class="flex items-center space-x-3 space-x-reverse">
+                <span class="text-3xl">📖</span>
+                <div>
+                    <h1 class="text-xl font-bold">ممتلكات دار سفوان القرآنية</h1>
+                    <p class="text-xs text-emerald-200">النظام السحابي لإدارة الجرد والموجودات</p>
+                </div>
+            </div>
+            <div id="sync-status" class="mt-2 md:mt-0 text-xs bg-emerald-700 px-3 py-1 rounded-full text-emerald-100">
+                جاري الاتصال بقاعدة البيانات السحابية...
+            </div>
+        </div>
+    </header>
+
+    <!-- التنقل بين التبويبات -->
+    <nav class="bg-white shadow-sm border-b no-print">
+        <div class="container mx-auto px-4 flex overflow-x-auto space-x-4 space-x-reverse">
+            <button onclick="switchTab('list')" class="tab-btn py-3 px-4 font-semibold text-emerald-700 border-b-2 border-emerald-700 whitespace-nowrap">الممتلكات المخزونة</button>
+            <button onclick="switchTab('add')" class="tab-btn py-3 px-4 font-semibold text-slate-500 hover:text-emerald-700 whitespace-nowrap">➕ إضافة ممتلك جديد</button>
+            <button onclick="switchTab('scan')" class="tab-btn py-3 px-4 font-semibold text-slate-500 hover:text-emerald-700 whitespace-nowrap">📷 مسح الكود (QR)</button>
+            <button onclick="switchTab('print')" class="tab-btn py-3 px-4 font-semibold text-slate-500 hover:text-emerald-700 whitespace-nowrap">🖨️ طباعة الملصقات (A4)</button>
+        </div>
+    </nav>
+
+    <!-- المحتوى الرئيسي -->
+    <main class="container mx-auto px-4 py-6 max-w-6xl">
+
+        <!-- تبويب: الممتلكات المخزونة -->
+        <section id="tab-list" class="space-y-4">
+            <div class="flex justify-between items-center bg-white p-4 rounded-xl shadow-sm">
+                <input type="text" id="search-input" placeholder="بحث باسم الممتلك أو الكود أو المكان..." oninput="filterAssets()" class="w-full md:w-1/3 px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-600">
+                <button onclick="loadAssetsCloud()" class="bg-emerald-600 text-white px-4 py-2 rounded-lg hover:bg-emerald-700 text-sm font-semibold">تحديث القائمة 🔄</button>
+            </div>
+            <div id="assets-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                <!-- يتم تعبئتها برمجياً -->
+            </div>
+        </section>
+
+        <!-- تبويب: إضافة ممتلك جديد -->
+        <section id="tab-add" class="hidden bg-white p-6 rounded-2xl shadow-sm max-w-2xl mx-auto">
+            <h2 class="text-xl font-bold text-emerald-800 mb-4 pb-2 border-b">إضافة ممتلك جديد للدار</h2>
+            <form id="add-form" onsubmit="saveAsset(event)" class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium mb-1">اسم الممتلك (مثال: مكيف هواء 2 طن):</label>
+                    <input type="text" id="asset-name" required class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-emerald-600">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium mb-1">المكان / القاعة:</label>
+                    <input type="text" id="asset-location" placeholder="مثال: القاعة الكبرى / الدور الأول" required class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-emerald-600">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium mb-1">الحالة:</label>
+                    <select id="asset-status" class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-emerald-600">
+                        <option value="ممتاز">ممتاز</option>
+                        <option value="يحتاج صيانة">يحتاج صيانة</option>
+                        <option value="تالف">تالف</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium mb-1">صورة الممتلك (التقاط بالكاميرا أو اختيار ملف):</label>
+                    <input type="file" id="asset-image" accept="image/*" capture="environment" class="w-full px-4 py-2 border rounded-lg bg-slate-50">
+                </div>
+                <button type="submit" id="save-btn" class="w-full bg-emerald-600 text-white py-3 rounded-lg font-bold hover:bg-emerald-700 transition">حفظ وتوليد الكود السحابي 🚀</button>
+            </form>
+        </section>
+
+        <!-- تبويب: مسح الكود -->
+        <section id="tab-scan" class="hidden bg-white p-6 rounded-2xl shadow-sm max-w-xl mx-auto text-center">
+            <h2 class="text-xl font-bold text-emerald-800 mb-4">مسح كود الممتلك (QR Code)</h2>
+            <div id="reader" class="w-full rounded-xl overflow-hidden border mb-4"></div>
+            <div id="scan-result" class="p-4 bg-slate-100 rounded-lg text-right hidden">
+                <h3 class="font-bold text-emerald-800 text-lg mb-2">تم العثور على الممتلك:</h3>
+                <p id="scanned-details" class="text-sm space-y-1"></p>
+            </div>
+        </section>
+
+        <!-- تبويب: طباعة الملصقات -->
+        <section id="tab-print" class="hidden space-y-6">
+            <div class="bg-white p-4 rounded-xl shadow-sm flex justify-between items-center no-print">
+                <div>
+                    <h2 class="font-bold text-lg text-emerald-800">إعدادات طباعة ملصقات A4</h2>
+                    <p class="text-xs text-slate-500">اختر الممتلكات المراد طباعة ملصقاتها أو حدد الكل</p>
+                </div>
+                <div class="space-x-2 space-x-reverse">
+                    <button onclick="toggleSelectAll(true)" class="bg-slate-200 px-3 py-1.5 rounded-lg text-sm">تحديد الكل</button>
+                    <button onclick="toggleSelectAll(false)" class="bg-slate-200 px-3 py-1.5 rounded-lg text-sm">إلغاء التحديد</button>
+                    <button onclick="window.print()" class="bg-emerald-600 text-white px-4 py-1.5 rounded-lg text-sm font-bold">🖨️ اطبع الورقة الآن</button>
+                </div>
+            </div>
+            <!-- شبكة الملصقات للطباعة -->
+            <div id="print-grid" class="grid grid-cols-2 md:grid-cols-3 gap-3">
+                <!-- تتعبأ برمجياً -->
+            </div>
+        </section>
+
+    </main>
+
+    <!-- نافذة منبثقة لتفاصيل الممتلك -->
+    <div id="modal" class="fixed inset-0 bg-black/50 hidden flex items-center justify-center p-4 z-50">
+        <div class="bg-white rounded-2xl max-w-md w-full p-6 relative">
+            <button onclick="closeModal()" class="absolute top-4 left-4 text-slate-400 hover:text-black font-bold text-xl">✕</button>
+            <div id="modal-content" class="space-y-4"></div>
+        </div>
+    </div>
+
+    <!-- كود الجافاسكريبت التفاعلي والربط السحابي -->
+    <script>
+        let allAssets = [];
+        let html5QrCode = null;
+
+        function switchTab(tabId) {
+            ['list', 'add', 'scan', 'print'].forEach(t => {
+                document.getElementById(`tab-${t}`).classList.add('hidden');
+            });
+            document.getElementById(`tab-${tabId}`).classList.remove('hidden');
+            
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.remove('text-emerald-700', 'border-b-2', 'border-emerald-700');
+                btn.classList.add('text-slate-500');
+            });
+            event.target.classList.add('text-emerald-700', 'border-b-2', 'border-emerald-700');
+            event.target.classList.remove('text-slate-500');
+
+            if(tabId === 'scan') {
+                initScanner();
+            } else {
+                stopScanner();
+            }
+            if(tabId === 'print') {
+                renderPrintGrid();
+            }
+        }
+
+        // جلب البيانات من Firebase Firestore
+        async function loadAssetsCloud() {
+            const statusEl = document.getElementById('sync-status');
+            try {
+                if(!window.db) return;
+                statusEl.innerText = "جاري مزامنة البيانات سحابياً...";
+                const querySnapshot = await window.getDocs(window.collection(window.db, "sufwan_assets"));
+                allAssets = [];
+                querySnapshot.forEach((docSnap) => {
+                    allAssets.push({ id: docSnap.id, ...docSnap.data() });
+                });
+                renderAssets(allAssets);
+                statusEl.innerText = `متصل سحابياً (${allAssets.length} ممتلك مخزون)`;
+            } catch (error) {
+                console.error(error);
+                statusEl.innerText = "خطأ في الاتصال السحابي، تأكد من إعدادات Firebase";
+            }
+        }
+        window.loadAssetsCloud = loadAssetsCloud;
+
+        // عرض الممتلكات في القائمة
+        function renderAssets(assets) {
+            const grid = document.getElementById('assets-grid');
+            if(assets.length === 0) {
+                grid.innerHTML = `<div class="col-span-full text-center py-10 text-slate-400">لا توجد ممتلكات مسجلة حالياً. قم بإضافة ممتلك جديد.</div>`;
+                return;
+            }
+            grid.innerHTML = assets.map(a => `
+                <div class="bg-white border rounded-xl overflow-hidden shadow-sm flex flex-col justify-between">
+                    <div>
+                        <div class="h-40 bg-slate-100 overflow-hidden relative">
+                            <img src="${a.image || 'https://via.placeholder.com/300?text=No+Image'}" class="w-full h-full object-cover">
+                            <span class="absolute top-2 right-2 bg-emerald-800 text-white text-xs px-2 py-1 rounded">${a.code}</span>
+                        </div>
+                        <div class="p-4 space-y-2">
+                            <h3 class="font-bold text-lg text-slate-800">${a.name}</h3>
+                            <p class="text-xs text-slate-500">📍 المكان: ${a.location}</p>
+                            <p class="text-xs font-semibold text-emerald-600">الحالة: ${a.status}</p>
+                        </div>
+                    </div>
+                    <div class="p-4 bg-slate-50 border-t flex justify-between items-center">
+                        <button onclick="showDetails('${a.id}')" class="text-emerald-700 text-sm font-bold hover:underline">عرض الباركود والبطاقة</button>
+                        <button onclick="deleteAsset('${a.id}')" class="text-red-500 text-xs hover:underline">حذف</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // إضافة ممتلك جديد وحفظه في السحابة
+        async function saveAsset(e) {
+            e.preventDefault();
+            const btn = document.getElementById('save-btn');
+            btn.innerText = "جاري الحفظ ورفع الصورة...";
+            btn.disabled = true;
+
+            const name = document.getElementById('asset-name').value;
+            const location = document.getElementById('asset-location').value;
+            const status = document.getElementById('asset-status').value;
+            const fileInput = document.getElementById('asset-image');
+
+            let imageUrl = "";
+            if (fileInput.files && fileInput.files[0]) {
+                imageUrl = await toBase64(fileInput.files[0]);
+            }
+
+            const randomNum = Math.floor(1000 + Math.random() * 9000);
+            const code = `SUF-${randomNum}`;
+
+            const newAsset = {
+                name,
+                location,
+                status,
+                image: imageUrl,
+                code,
+                createdAt: new Date().toISOString()
+            };
+
+            try {
+                await window.addDoc(window.collection(window.db, "sufwan_assets"), newAsset);
+                document.getElementById('add-form').reset();
+                alert("تم حفظ الممتلك بنجاح في قاعدة البيانات السحابية!");
+                loadAssetsCloud();
+                switchTab('list');
+            } catch (err) {
+                console.error(err);
+                alert("حدث خطأ أثناء الحفظ بالسحابة.");
+            } finally {
+                btn.innerText = "حفظ وتوليد الكود السحابي 🚀";
+                btn.disabled = false;
+            }
+        }
+
+        function toBase64(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.readAsDataURL(file);
+                reader.onload = () => resolve(reader.result);
+                reader.onerror = error => reject(error);
+            });
+        }
+
+        // حذف ممتلك
+        async function deleteAsset(id) {
+            if(confirm("هل أنت متأكد من حذف هذا الممتلك نهائياً من السحابة؟")) {
+                try {
+                    await window.deleteDoc(window.doc(window.db, "sufwan_assets", id));
+                    loadAssetsCloud();
+                } catch(err) {
+                    alert("فشل الحذف.");
+                }
+            }
+        }
+
+        // تصفية البحث
+        function filterAssets() {
+            const query = document.getElementById('search-input').value.toLowerCase();
+            const filtered = allAssets.filter(a => 
+                a.name.toLowerCase().includes(query) || 
+                a.code.toLowerCase().includes(query) || 
+                a.location.toLowerCase().includes(query)
+            );
+            renderAssets(filtered);
+        }
+
+        // عرض نافذة التفاصيل والباركود
+        function showDetails(id) {
+            const a = allAssets.find(item => item.id === id);
+            if(!a) return;
+
+            const modal = document.getElementById('modal');
+            const content = document.getElementById('modal-content');
+            
+            content.innerHTML = `
+                <div class="text-center space-y-3">
+                    <h3 class="font-bold text-xl text-emerald-800">${a.name}</h3>
+                    <p class="text-xs text-slate-500">الكود التعريفي: <span class="bg-slate-100 px-2 py-1 rounded font-mono font-bold">${a.code}</span></p>
+                    <p class="text-xs text-slate-500">المكان: ${a.location}</p>
+                    <div id="modal-qrcode" class="flex justify-center p-2 bg-white border rounded-xl my-2"></div>
+                    <p class="text-xs text-slate-400">امسح الرمز للكشف عن بيانات الممتلك فوراً</p>
+                </div>
+            `;
+            modal.classList.remove('hidden');
+
+            // توليد QR داخل النافذة
+            setTimeout(() => {
+                document.getElementById('modal-qrcode').innerHTML = "";
+                new QRCode(document.getElementById('modal-qrcode'), {
+                    text: a.code,
+                    width: 120,
+                    height: 120
+                });
+            }, 100);
+        }
+
+        function closeModal() {
+            document.getElementById('modal').classList.add('hidden');
+        }
+
+        // شبكة طباعة الملصقات المصغرة A4
+        function renderPrintGrid() {
+            const printGrid = document.getElementById('print-grid');
+            if(allAssets.length === 0) {
+                printGrid.innerHTML = `<p class="text-center col-span-full text-slate-400">لا توجد ممتلكات متاحة للطباعة.</p>`;
+                return;
+            }
+
+            printGrid.innerHTML = allAssets.map((a, index) => `
+                <div class="border border-dashed border-slate-400 p-3 rounded-lg bg-white flex items-center justify-between shadow-2xs relative print-sticker">
+                    <div class="absolute top-1 left-1 no-print">
+                        <input type="checkbox" class="print-checkbox w-4 h-4 accent-emerald-600" value="${a.id}" checked>
+                    </div>
+                    <div class="space-y-1 pr-1">
+                        <span class="text-[10px] bg-emerald-100 text-emerald-800 px-1.5 py-0.5 rounded font-bold">دار سفوان</span>
+                        <h4 class="font-bold text-xs text-slate-900 leading-tight">${a.name}</h4>
+                        <div class="text-[10px] font-mono bg-slate-100 px-1 py-0.5 rounded inline-block font-bold">${a.code}</div>
+                        <p class="text-[10px] text-slate-500">📍 ${a.location}</p>
+                    </div>
+                    <div class="qr-code-box flex-shrink-0 ml-2" data-code="${a.code}"></div>
+                </div>
+            `).join('');
+
+            // توليد رموز QR للملصقات
+            setTimeout(() => {
+                document.querySelectorAll('.qr-code-box').forEach(el => {
+                    el.innerHTML = "";
+                    new QRCode(el, {
+                        text: el.getAttribute('data-code'),
+                        width: 55,
+                        height: 55
+                    });
+                });
+            }, 100);
+        }
+
+        function toggleSelectAll(select) {
+            document.querySelectorAll('.print-checkbox').forEach(cb => cb.checked = select);
+        }
+
+        // ماسح الكاميرا (QR Scanner)
+        function initScanner() {
+            if(html5QrCode) return;
+            html5QrCode = new Html5Qrcode("reader");
+            html5QrCode.start(
+                { facingMode: "environment" },
+                { fps: 10, qrbox: { width: 200, height: 200 } },
+                qrCodeMessage => {
+                    // عند نجاح المسح ومطابقة الكود
+                    const found = allAssets.find(a => a.code === qrCodeMessage);
+                    const resBox = document.getElementById('scan-result');
+                    const detailsBox = document.getElementById('scanned-details');
+                    
+                    resBox.classList.remove('hidden');
+                    if(found) {
+                        detailsBox.innerHTML = `
+                            <p><b>اسم الممتلك:</b> ${found.name}</p>
+                            <p><b>الكود:</b> ${found.code}</p>
+                            <p><b>المكان:</b> ${found.location}</p>
+                            <p><b>الحالة:</b> ${found.status}</p>
+                            <button onclick="showDetails('${found.id}')" class="mt-2 bg-emerald-600 text-white px-3 py-1 rounded text-xs">عرض البطاقة الكاملة</button>
+                        `;
+                    } else {
+                        detailsBox.innerHTML = `<p class="text-red-600">الكود "${qrCodeMessage}" غير مسجل في قاعدة البيانات السحابية.</p>`;
+                    }
+                },
+                errorMessage => {}
+            ).catch(err => {
+                console.error("تعذر تشغيل الكاميرا", err);
+            });
+        }
+
+        function stopScanner() {
+            if(html5QrCode) {
+                html5QrCode.stop().then(() => {
+                    html5QrCode = null;
+                }).catch(err => { console.log(err); });
+            }
+        }
+    </script>
+</body>
+</html>

@@ -15,6 +15,10 @@
     <!-- HTML5 QR Code Scanner -->
     <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
 
+    <!-- Firebase SDK (compat) -->
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+
     <script>
         tailwind.config = {
             theme: {
@@ -480,51 +484,133 @@
 
     <!-- JavaScript Logic -->
     <script>
-        const STORAGE_KEY = 'sufwan_quran_assets_db_v1';
-        // ⚠️ هنا تم وضع رابط npoint.io الخاص بك
-        const NPOINT_URL = 'https://api.npoint.io/bd6f4ec42f6bc61c49fd'; 
-        
+        // =====================================================
+        //  إعدادات Firebase  —  ضع بيانات مشروعك هنا فقط
+        //  (Firebase Console > Project settings > Your apps > Web app)
+        // =====================================================
+          const firebaseConfig = {
+            apiKey: "AIzaSyCrqzZ4wCIWCGtGdH4CGUIXbqnnNPePFpY",
+            authDomain: "database-3c044.firebaseapp.com",
+            projectId: "database-3c044",
+            storageBucket: "database-3c044.firebasestorage.app",
+            messagingSenderId: "204464629623",
+            appId: "1:204464629623:web:9077e70e56aa9a66c5a372",
+            measurementId: "G-1C3362WJM0"
+        };
+        // =====================================================
+
+        const STORAGE_KEY = 'sufwan_quran_assets_db_v1';   // يُستخدم فقط عند عدم تفعيل Firebase
+        const ASSETS_COLLECTION = 'assets';
+        // يعمل Firebase تلقائياً عند استبدال القيم أعلاه، وإلا يستمر التطبيق بالتخزين المحلي
+        let USE_FIREBASE = !Object.values(firebaseConfig).some(v => String(v).includes('YOUR_'));
+        let db = null;
+        let firstSnapshot = true;
+
         let assets = [];
         let currentEditingAssetId = null;
         let html5QrCode = null;
         let selectedAssetIdsForPrint = new Set();
 
         // Initialize Application
-        window.addEventListener('DOMContentLoaded', async () => {
-            // جلب البيانات من npoint.io عند بدء التطبيق
-            await loadAssetsFromNpointOrStorage();
-            
-            // Select all assets by default for print page
+        window.addEventListener('DOMContentLoaded', () => {
+            if (USE_FIREBASE) {
+                try {
+                    firebase.initializeApp(firebaseConfig);
+                    db = firebase.firestore();
+                    startRealtimeSync();
+                    return;
+                } catch (e) {
+                    console.error('Firebase init error:', e);
+                    USE_FIREBASE = false;
+                    showToast('تعذر الاتصال بـ Firebase، تم التحويل للتخزين المحلي', 'error');
+                }
+            }
+            loadAssetsFromStorage();
             assets.forEach(a => selectedAssetIdsForPrint.add(a.id));
             renderDashboard();
             renderInventory();
         });
 
-        // 🔄 دالة جلب البيانات من npoint.io مع خطة بديلة (Local Storage)
-        async function loadAssetsFromNpointOrStorage() {
-            try {
-                const response = await fetch(NPOINT_URL);
-                if (!response.ok) throw new Error('Network response was not ok');
-                
-                const data = await response.json();
-                
-                // التحقق مما إذا كانت البيانات عبارة عن مصفوفة (Array) كما هو مطلوب
-                if (Array.isArray(data) && data.length > 0) {
-                    assets = data;
-                    console.log("✅ تم تحميل البيانات بنجاح من npoint.io");
-                    return; // الخروج من الدالة لأن البيانات تم تحميلها بنجاح
-                } else {
-                    console.warn("⚠️ البيانات في npoint.io ليست بالتنسيق الصحيح (يجب أن تكون مصفوفة). سيتم استخدام البيانات المحلية.");
-                }
-            } catch (error) {
-                console.error("❌ فشل الاتصال بـ npoint.io، سيتم استخدام البيانات المحلية:", error);
-            }
+        // Firebase: مزامنة لحظية مع Firestore
+        function startRealtimeSync() {
+            db.collection(ASSETS_COLLECTION).orderBy('createdAt').onSnapshot(snapshot => {
+                const previousIds = new Set(assets.map(a => a.id));
+                assets = snapshot.docs.map(d => ({ ...d.data(), id: d.id }));
 
-            // الخطة البديلة: استخدام البيانات المحلية إذا فشل الاتصال أو كان التنسيق خاطئاً
-            const localData = localStorage.getItem(STORAGE_KEY);
-            if (localData) {
+                assets.forEach(a => {
+                    if (firstSnapshot || !previousIds.has(a.id)) selectedAssetIdsForPrint.add(a.id);
+                });
+                [...selectedAssetIdsForPrint].forEach(id => {
+                    if (!assets.some(a => a.id === id)) selectedAssetIdsForPrint.delete(id);
+                });
+                firstSnapshot = false;
+
+                renderDashboard();
+                renderInventory();
+                const printTab = document.getElementById('tab-print-stickers');
+                if (printTab && !printTab.classList.contains('hidden')) renderPrintStickersPage();
+            }, err => {
+                console.error('Firestore error:', err);
+                showToast('خطأ في الاتصال بقاعدة البيانات: ' + err.code, 'error');
+            });
+        }
+
+        // Firebase: توليد رقم تسلسلي آمن (SQ-1001, SQ-1002 ...) وإنشاء الممتلك في عملية واحدة
+        async function createAssetWithNextId(data) {
+            const counterRef = db.collection('meta').doc('counter');
+            return db.runTransaction(async tx => {
+                const snap = await tx.get(counterRef);
+                let last;
+                if (snap.exists) {
+                    last = snap.data().last;
+                } else {
+                    last = assets.reduce((max, a) => {
+                        const n = parseInt(String(a.id).replace('SQ-', ''));
+                        return !isNaN(n) && n > max ? n : max;
+                    }, 1000);
+                }
+                const next = last + 1;
+                const id = `SQ-${next}`;
+                tx.set(counterRef, { last: next });
+                tx.set(db.collection(ASSETS_COLLECTION).doc(id), data);
+                return id;
+            });
+        }
+
+        // الصور: تُضغط وتُحفظ داخل Firestore مباشرة (مجاني، بدون Firebase Storage)
+        function compressImage(dataUrl, maxSize = 800, quality = 0.7) {
+            return new Promise(resolve => {
+                const img = new Image();
+                img.onload = () => {
+                    let size = maxSize, q = quality, out;
+                    const MAX_CHARS = 700000;   // حد المستند في Firestore ≈ 1MB
+                    do {
+                        const scale = Math.min(1, size / Math.max(img.width, img.height));
+                        const canvas = document.createElement('canvas');
+                        canvas.width = Math.round(img.width * scale);
+                        canvas.height = Math.round(img.height * scale);
+                        canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
+                        out = canvas.toDataURL('image/jpeg', q);
+                        size *= 0.8; q = Math.max(0.4, q - 0.1);
+                    } while (out.length > MAX_CHARS && size > 200);
+                    resolve(out);
+                };
+                img.onerror = () => resolve(dataUrl);
+                img.src = dataUrl;
+            });
+        }
+
+        async function prepareImageForSave(imageSrc) {
+            if (!imageSrc.startsWith('data:')) return imageSrc;   // رابط جاهز (لم تتغير الصورة)
+            return await compressImage(imageSrc);
+        }
+
+        // Storage Management (التخزين المحلي — احتياطي)
+        function loadAssetsFromStorage() {
+            const data = localStorage.getItem(STORAGE_KEY);
+            if (data) {
                 try {
-                    assets = JSON.parse(localData);
+                    assets = JSON.parse(data);
                 } catch (e) {
                     assets = getSampleInitialData();
                 }
@@ -535,9 +621,7 @@
         }
 
         function saveAssetsToStorage() {
-            // ملاحظة: لا يمكن الحفظ مباشرة في npoint.io من هنا لأنها تتطلب رمز تحرير (Edit Token)
-            // لذلك يتم الحفظ في الذاكرة المحلية للمتصفح لضمان عدم فقدان البيانات المدخلة
-            localStorage.setItem(STORAGE_KEY, JSON.stringify(assets));
+            if (!USE_FIREBASE) localStorage.setItem(STORAGE_KEY, JSON.stringify(assets));
             renderDashboard();
         }
 
@@ -662,10 +746,10 @@
         }
 
         // Save/Edit Asset
-        function handleSaveAsset(event) {
+        async function handleSaveAsset(event) {
             event.preventDefault();
 
-            const assetId = currentEditingAssetId || generateUniqueCode();
+            const submitBtn = event.target.querySelector('button[type="submit"]');
             const name = document.getElementById('asset-name').value.trim();
             const location = document.getElementById('asset-location').value.trim();
             const status = document.getElementById('asset-status').value;
@@ -673,27 +757,51 @@
             const notes = document.getElementById('asset-notes').value.trim();
             const previewImgSrc = document.getElementById('preview-img').src;
 
-            const image = (previewImgSrc && previewImgSrc !== window.location.href) 
-                ? previewImgSrc 
+            let image = (previewImgSrc && previewImgSrc !== window.location.href)
+                ? previewImgSrc
                 : 'https://placehold.co/400x300/166534/ffffff?text=' + encodeURIComponent(name);
 
-            if (currentEditingAssetId) {
-                const index = assets.findIndex(a => a.id === currentEditingAssetId);
-                if (index !== -1) {
-                    assets[index] = { ...assets[index], name, location, status, category, notes, image, updatedAt: new Date().toISOString() };
-                    showToast('تم تحديث البيانات بنجاح');
-                }
-            } else {
-                const newAsset = { id: assetId, name, location, status, category, notes, image, createdAt: new Date().toISOString() };
-                assets.push(newAsset);
-                selectedAssetIdsForPrint.add(assetId);
-                showToast('تمت إضافة الممتلك وتوليد الملصق');
-            }
+            if (submitBtn) { submitBtn.disabled = true; submitBtn.classList.add('opacity-60'); }
 
-            saveAssetsToStorage();
-            resetForm();
-            switchTab('inventory');
-            openAssetModal(assetId);
+            try {
+                let assetId = currentEditingAssetId;
+                const oldAsset = assetId ? assets.find(a => a.id === assetId) : null;
+                const now = new Date().toISOString();
+
+                image = await prepareImageForSave(image);
+
+                if (assetId) {
+                    // تعديل
+                    const changes = { name, location, status, category, notes, image, updatedAt: now };
+                    if (USE_FIREBASE) {
+                        await db.collection(ASSETS_COLLECTION).doc(assetId).update(changes);
+                    }
+                    const index = assets.findIndex(a => a.id === assetId);
+                    if (index !== -1) assets[index] = { ...assets[index], ...changes };
+                    showToast('تم تحديث البيانات بنجاح');
+                } else {
+                    // إضافة
+                    const data = { name, location, status, category, notes, image, createdAt: now };
+                    if (USE_FIREBASE) {
+                        assetId = await createAssetWithNextId(data);
+                    } else {
+                        assetId = generateUniqueCode();
+                    }
+                    if (!assets.some(a => a.id === assetId)) assets.push({ id: assetId, ...data });
+                    selectedAssetIdsForPrint.add(assetId);
+                    showToast('تمت إضافة الممتلك وتوليد الملصق');
+                }
+
+                saveAssetsToStorage();
+                resetForm();
+                switchTab('inventory');
+                openAssetModal(assetId);
+            } catch (err) {
+                console.error(err);
+                showToast('حدث خطأ أثناء الحفظ: ' + (err.code || err.message || ''), 'error');
+            } finally {
+                if (submitBtn) { submitBtn.disabled = false; submitBtn.classList.remove('opacity-60'); }
+            }
         }
 
         function resetForm() {
@@ -942,13 +1050,20 @@
             if (currentEditingAssetId) prepareEditAsset(currentEditingAssetId);
         }
 
-        function confirmDeleteAsset(assetId) {
-            if (confirm(`هل أنت أصلًا متأكد من حذف الممتلك (${assetId})؟`)) {
+        async function confirmDeleteAsset(assetId) {
+            if (!confirm(`هل أنت أصلًا متأكد من حذف الممتلك (${assetId})؟`)) return;
+            try {
+                if (USE_FIREBASE) {
+                    await db.collection(ASSETS_COLLECTION).doc(assetId).delete();
+                }
                 assets = assets.filter(a => a.id !== assetId);
                 selectedAssetIdsForPrint.delete(assetId);
                 saveAssetsToStorage();
                 renderInventory();
                 showToast('تم حذف الممتلك بنجاح');
+            } catch (err) {
+                console.error(err);
+                showToast('تعذر الحذف: ' + (err.code || err.message || ''), 'error');
             }
         }
 

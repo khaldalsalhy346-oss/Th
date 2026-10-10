@@ -31,9 +31,9 @@
     <style>
         body { font-family: 'Cairo', sans-serif; background-color: #f8fafc; }
 
-        /* 3 ملصقات في الصف - 65mm x 30mm (تصميم أفقي) */
+        /* التصميم على الشاشة */
         .sticker-card {
-            width: 65mm; 
+            width: 62mm; 
             height: 30mm;
             box-sizing: border-box;
             page-break-inside: avoid;
@@ -43,7 +43,7 @@
             padding: 1.5mm; 
         }
 
-        /* إعدادات الطباعة الصارمة لمنع تصغير الحجم على الهواتف */
+        /* إعدادات الطباعة الصارمة */
         @media print {
             .no-print { display: none !important; }
             
@@ -51,21 +51,19 @@
                 background: white !important; 
                 margin: 0 !important; 
                 padding: 0 !important; 
-                width: 210mm !important; /* إجبار الصفحة على مقاس A4 */
                 -webkit-print-color-adjust: exact !important;
                 print-color-adjust: exact !important;
             }
             
+            /* ترك مساحة أمان للمتصفح حتى لا يقطع الملصقات */
             @page { 
                 size: A4 portrait; 
-                margin: 10mm 5mm; 
+                margin: 10mm 10mm; 
             }
 
-            /* إخفاء جميع التبويبات وإظهار تبويب الطباعة فقط */
             header, footer, .tab-content:not(#tab-print-stickers) { display: none !important; }
             #tab-print-stickers { display: block !important; }
             
-            /* إزالة الحواشي والإطارات من الحاويات الأم لتجنب تداخل الطباعة */
             #tab-print-stickers .bg-white,
             #tab-print-stickers .rounded-2xl {
                 border: none !important;
@@ -75,28 +73,28 @@
                 background: transparent !important;
             }
 
-            /* تقسيم الصفحة إلى 3 أعمدة بالضبط */
+            /* تنسيق شبكة الطباعة: 3 أعمدة */
             .a4-print-grid {
-                display: grid !important;
-                grid-template-columns: repeat(3, 65mm) !important; 
-                gap: 2mm !important;
-                justify-content: center !important;
+                display: flex !important;
+                flex-wrap: wrap !important;
+                gap: 1.5mm !important;
+                justify-content: flex-start !important;
                 width: 100% !important;
             }
 
-            /* تنسيق الملصق نفسه */
+            /* إطار سميك وواضح جداً للملصق */
             .sticker-card {
-                width: 65mm !important;
+                width: 62mm !important;
                 height: 30mm !important;
-                border: 1px dashed #166534 !important; /* الإطار الأخضر المتقطع */
-                border-radius: 2mm !important;
+                border: 1.5px dashed #000000 !important; /* إطار أسود متقطع سميك */
+                border-radius: 1.5mm !important;
                 padding: 1.5mm !important;
                 box-sizing: border-box !important;
-                background: white !important;
                 page-break-inside: avoid !important;
                 display: flex !important;
                 flex-direction: column !important;
                 overflow: hidden !important;
+                background: white !important;
             }
             
             img { max-width: 100% !important; height: auto !important; }
@@ -135,7 +133,7 @@
 
                 <div class="cursor-pointer" onclick="switchTab('dashboard')">
                     <h1 class="text-xl font-bold tracking-tight text-amber-100">دار سفوان القرآنية</h1>
-                    <p class="text-xs text-emerald-200">نظام إدارة وتوثيق الممتلكات الرقمية</p>
+                    <p class="text-xs text-emerald-200">نظام إدارة وتوثيق الممتلكات الرقمي</p>
                 </div>
             </div>
 
@@ -354,7 +352,7 @@
                             <i class="fa-solid fa-print text-brand-700"></i> تخصيص وطباعة ملصقات الـ A4
                         </h2>
                         <p class="text-xs text-slate-500 mt-1">
-                            <strong>3 ملصقات في الصف</strong> (تصميم أفقي 65مم × 30مم). كل QR يحتوي على رابط ذكي يفتح بطاقة الممتلك تلقائياً عند مسحه بأي كاميرا هاتف.
+                            <strong>3 ملصقات في الصف</strong> (تصميم أفقي). كل QR يحتوي على رابط ذكي يفتح بطاقة الممتلك تلقائياً عند مسحه بأي كاميرا هاتف.
                         </p>
                     </div>
                     <div class="flex items-center gap-2 w-full md:w-auto justify-end flex-wrap">
@@ -511,14 +509,12 @@
         let selectedAssetIdsForPrint = new Set();
         let currentLogo = null;
 
-        // حالة معالجة الرابط القادم من QR
         let firebaseReady = false;
         let urlParamHandled = false;
         let openedViaQr = false;
 
         // ================= Init =================
         window.addEventListener('DOMContentLoaded', () => {
-            // شعار
             currentLogo = localStorage.getItem(LOGO_KEY);
             applyLogo();
 
@@ -534,7 +530,6 @@
                     showToast('تعذر الاتصال بـ Firebase، تم التحويل للتخزين المحلي', 'error');
                 }
             }
-            // تخزين محلي
             loadAssetsFromStorage();
             assets.forEach(a => selectedAssetIdsForPrint.add(a.id));
             renderDashboard();
@@ -547,7 +542,6 @@
         function getQrBaseUrl() {
             const custom = localStorage.getItem(BASE_URL_KEY);
             if (custom && custom.trim()) return custom.trim().replace(/\/+$/, '');
-            // fallback: الرابط الحالي بدون query
             try {
                 return window.location.origin + window.location.pathname;
             } catch (e) {
@@ -557,7 +551,6 @@
 
         function getAssetQrContent(assetId) {
             const base = getQrBaseUrl();
-            // إذا لم يوجد base صالح (مثل file://)، ارجع للكود فقط
             if (!base || base.startsWith('file:')) return assetId;
             const sep = base.includes('?') ? '&' : '?';
             return `${base}${sep}asset=${encodeURIComponent(assetId)}`;
@@ -588,7 +581,6 @@
                 showToast('تم تحديث رابط QR بنجاح');
             }
 
-            // تحديث العرض
             const display = document.getElementById('qr-base-url-display');
             if (display) {
                 const effective = getQrBaseUrl();
@@ -615,7 +607,6 @@
                 setTimeout(() => {
                     switchTab('inventory');
                     openAssetModal(asset.id);
-                    // إظهار شارة "تم الفتح عبر QR" في المودال
                     const badge = document.getElementById('qr-origin-badge');
                     if (badge) badge.classList.remove('hidden');
                     showToast(`مرحباً! تم عرض بيانات الممتلك ${asset.id}`);
@@ -626,7 +617,6 @@
                     alert(`لم يتم العثور على الممتلك بالكود: ${assetId}\n\nقد يكون محذوفاً أو غير مُسجّل.`);
                 }, 400);
             }
-            // else: انتظر اكتمال تحميل Firebase
         }
 
         // ================= Logo =================
@@ -704,8 +694,6 @@
                 if (!document.getElementById('tab-print-stickers').classList.contains('hidden')) {
                     renderPrintStickersPage();
                 }
-
-                // محاولة فتح الممتلك من رابط QR
                 tryOpenAssetFromUrl();
             }, err => {
                 console.error('Firestore error:', err);
@@ -1050,7 +1038,7 @@
                         class="no-print absolute top-1 right-1 w-4 h-4 text-brand-600 rounded border-slate-300 focus:ring-brand-500 z-20 cursor-pointer">
                 ` : ''}
 
-                <div class="flex items-center justify-between h-full w-full gap-2 overflow-hidden">
+                <div class="flex items-center justify-between h-full w-full gap-1 overflow-hidden">
                     <!-- الجزء الأيمن: الشعار والنصوص -->
                     <div class="flex flex-col justify-between h-full flex-1 min-w-0 pr-1">
                         <div>
@@ -1062,20 +1050,20 @@
                                 </div>
                                 <p class="text-[9px] text-emerald-900 font-extrabold leading-none tracking-tight">دار سفوان القرآنية</p>
                             </div>
-                            <!-- تم استبدال كلمة سبيل باسم المنتج هنا -->
-                            <p class="text-[9.5px] text-slate-800 font-extrabold leading-tight mt-1 mr-[2px] truncate" title="${asset.name}">${asset.name}</p>
+                            <!-- اسم المنتج مكان كلمة سبيل -->
+                            <p class="text-[10px] text-slate-900 font-extrabold leading-tight mt-1 truncate" title="${asset.name}">${asset.name}</p>
                         </div>
 
                         <div class="mt-auto mr-1">
-                            <p class="text-slate-600 font-bold truncate" style="font-size:9px;">${asset.location}</p>
-                            <span class="text-amber-600 font-mono font-extrabold" style="font-size:9px; line-height:1;">${asset.id}</span>
+                            <p class="text-slate-600 font-bold truncate" style="font-size:8px;">${asset.location}</p>
+                            <span class="text-amber-700 font-mono font-extrabold" style="font-size:9px; line-height:1;">${asset.id}</span>
                         </div>
                     </div>
 
                     <!-- الجزء الأيسر: الصورة ورمز الـ QR -->
-                    <div class="flex items-center gap-1.5 flex-shrink-0 h-full pl-1">
+                    <div class="flex items-center gap-1 flex-shrink-0 h-full pl-1">
                         <!-- الصورة -->
-                        <div class="w-[15mm] h-[15mm] rounded overflow-hidden border border-slate-200 bg-slate-100 flex-shrink-0">
+                        <div class="w-[12mm] h-[12mm] rounded overflow-hidden border border-slate-200 bg-slate-100 flex-shrink-0">
                             <img src="${asset.image}" class="w-full h-full object-cover" alt="">
                         </div>
                         <!-- رمز الـ QR -->
@@ -1093,7 +1081,6 @@
 
             badge.textContent = `المحدد للطباعة: ${selectedAssetIdsForPrint.size} من أصل ${assets.length}`;
 
-            // عرض رابط QR الحالي
             if (urlDisplay) {
                 const effective = getQrBaseUrl();
                 if (!effective || effective.startsWith('file:')) {
@@ -1129,9 +1116,9 @@
                     if (el) {
                         el.innerHTML = '';
                         new QRCode(el, {
-                            text: getAssetQrContent(asset.id),  // ★ رابط ذكي
-                            width: 50,  // حجم مناسب للملصق الأفقي
-                            height: 50, // حجم مناسب للملصق الأفقي
+                            text: getAssetQrContent(asset.id),
+                            width: 42,  // حجم مناسب جداً للملصق الأفقي
+                            height: 42, // حجم مناسب جداً للملصق الأفقي
                             colorDark: "#14532d",
                             colorLight: "#ffffff",
                             correctLevel: QRCode.CorrectLevel.M
@@ -1171,7 +1158,6 @@
             else if (asset.status === 'جيد') badge.className = 'inline-block text-[11px] font-bold px-2 py-0.5 rounded-full bg-blue-100 text-blue-800 border border-blue-300';
             else badge.className = 'inline-block text-[11px] font-bold px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 border border-amber-300';
 
-            // معاينة الملصق
             const previewWrap = document.getElementById('modal-sticker-preview');
             previewWrap.innerHTML = '';
             const stickerEl = document.createElement('div');
@@ -1185,9 +1171,9 @@
                 if (el) {
                     el.innerHTML = '';
                     new QRCode(el, {
-                        text: getAssetQrContent(asset.id),  // ★ رابط ذكي
-                        width: 50, // حجم مناسب
-                        height: 50, // حجم مناسب
+                        text: getAssetQrContent(asset.id),
+                        width: 42,
+                        height: 42,
                         colorDark: "#14532d",
                         colorLight: "#ffffff",
                         correctLevel: QRCode.CorrectLevel.M
@@ -1200,7 +1186,6 @@
 
         function closeModal() {
             document.getElementById('asset-modal').classList.add('hidden');
-            // إخفاء شارة QR بعد الإغلاق
             const badge = document.getElementById('qr-origin-badge');
             if (badge) badge.classList.add('hidden');
         }
@@ -1264,19 +1249,15 @@
             }
         }
 
-        // ★ استخراج كود الممتلك من نص QR (سواء رابط كامل أو كود مباشر)
         function extractAssetIdFromQr(text) {
             text = String(text || '').trim();
-            // حاول تحليل كرابط
             try {
                 const url = new URL(text);
                 const p = url.searchParams.get('asset');
                 if (p) return p;
-            } catch (e) { /* ليس رابطاً */ }
-            // ابحث عن نمط SQ-XXXX في النص
+            } catch (e) { }
             const m = text.match(/SQ-\d+/i);
             if (m) return m[0];
-            // إرجاع النص كما هو
             return text;
         }
 

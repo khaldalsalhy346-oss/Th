@@ -15,7 +15,7 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc, updateDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-        // إعدادات Firebase الخاصة بك المنسوخة من حسابك
+        // إعدادات Firebase الخاصه بمشروعك
         const firebaseConfig = {
             apiKey: "AizaSyBQT4vsYF0SLAQudRQbMSgTGdYpqnV05M",
             authDomain: "safwan-assets.firebaseapp.com",
@@ -36,8 +36,8 @@
         window.doc = doc;
         window.updateDoc = updateDoc;
         
-        // تشغيل دالة الجلب عند تحميل الصفحة
-        if(window.loadAssetsCloud) window.loadAssetsCloud();
+        // تشغيل دالة الجلب عند تحميل الصفحة والتحقق من الرابط المباشر
+        if(window.initAppCloud) window.initAppCloud();
     </script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&display=swap');
@@ -61,7 +61,7 @@
                 </div>
             </div>
             <div id="sync-status" class="mt-2 md:mt-0 text-xs bg-emerald-700 px-3 py-1 rounded-full text-emerald-100">
-                جاري الاتصال بقاعدة البيانات السحابية...
+                جاري الاتصال بقاعدة البيانات...
             </div>
         </div>
     </header>
@@ -71,7 +71,7 @@
         <div class="container mx-auto px-4 flex overflow-x-auto space-x-4 space-x-reverse">
             <button onclick="switchTab('list')" class="tab-btn py-3 px-4 font-semibold text-emerald-700 border-b-2 border-emerald-700 whitespace-nowrap">الممتلكات المخزونة</button>
             <button onclick="switchTab('add')" class="tab-btn py-3 px-4 font-semibold text-slate-500 hover:text-emerald-700 whitespace-nowrap">➕ إضافة ممتلك جديد</button>
-            <button onclick="switchTab('scan')" class="tab-btn py-3 px-4 font-semibold text-slate-500 hover:text-emerald-700 whitespace-nowrap">📷 مسح الكود (QR)</button>
+            <button onclick="switchTab('scan')" class="tab-btn py-3 px-4 font-semibold text-slate-500 hover:text-emerald-700 whitespace-nowrap">📷 مسح الكود داخل الأداة</button>
             <button onclick="switchTab('print')" class="tab-btn py-3 px-4 font-semibold text-slate-500 hover:text-emerald-700 whitespace-nowrap">🖨️ طباعة الملصقات (A4)</button>
         </div>
     </nav>
@@ -114,7 +114,7 @@
                     <label class="block text-sm font-medium mb-1">صورة الممتلك (التقاط بالكاميرا أو اختيار ملف):</label>
                     <input type="file" id="asset-image" accept="image/*" capture="environment" class="w-full px-4 py-2 border rounded-lg bg-slate-50">
                 </div>
-                <button type="submit" id="save-btn" class="w-full bg-emerald-600 text-white py-3 rounded-lg font-bold hover:bg-emerald-700 transition">حفظ وتوليد الكود السحابي 🚀</button>
+                <button type="submit" id="save-btn" class="w-full bg-emerald-600 text-white py-3 rounded-lg font-bold hover:bg-emerald-700 transition">حفظ وتوليد الرابط المباشر 🚀</button>
             </form>
         </section>
 
@@ -157,10 +157,32 @@
         </div>
     </div>
 
-    <!-- كود الجافاسكريبت التفاعلي والربط السحابي -->
+    <!-- كود الجافاسكريبت التفاعلي والربط السحابي والمباشر -->
     <script>
         let allAssets = [];
         let html5QrCode = null;
+
+        // رابط موقعك على GitHub Pages
+        const BASE_URL = "https://khaldalsalhy346-oss.github.io/Th/";
+
+        async function initAppCloud() {
+            await loadAssetsCloud();
+            
+            // التحقق مما إذا كان المستخدم فتح الرابط المباشر للغرض عبر كاميرا الهاتف
+            const hash = window.location.hash.replace('#', '');
+            if(hash && hash.startsWith('SUF-')) {
+                const found = allAssets.find(a => a.code === hash);
+                if(found) {
+                    showDetails(found.id);
+                } else {
+                    setTimeout(() => {
+                        const foundAgain = allAssets.find(a => a.code === hash);
+                        if(foundAgain) showDetails(foundAgain.id);
+                    }, 1200);
+                }
+            }
+        }
+        window.initAppCloud = initAppCloud;
 
         function switchTab(tabId) {
             ['list', 'add', 'scan', 'print'].forEach(t => {
@@ -265,14 +287,14 @@
             try {
                 await window.addDoc(window.collection(window.db, "sufwan_assets"), newAsset);
                 document.getElementById('add-form').reset();
-                alert("تم حفظ الممتلك بنجاح في قاعدة البيانات السحابية!");
+                alert("تم حفظ الممتلك بنجاح وتوليد الرابط المباشر!");
                 loadAssetsCloud();
                 switchTab('list');
             } catch (err) {
                 console.error(err);
                 alert("حدث خطأ أثناء الحفظ بالسحابة.");
             } finally {
-                btn.innerText = "حفظ وتوليد الكود السحابي 🚀";
+                btn.innerText = "حفظ وتوليد الرابط المباشر 🚀";
                 btn.disabled = false;
             }
         }
@@ -309,7 +331,7 @@
             renderAssets(filtered);
         }
 
-        // عرض نافذة التفاصيل والباركود
+        // عرض نافذة التفاصيل والباركود مع صورة الغرض
         function showDetails(id) {
             const a = allAssets.find(item => item.id === id);
             if(!a) return;
@@ -317,30 +339,36 @@
             const modal = document.getElementById('modal');
             const content = document.getElementById('modal-content');
             
+            const directUrl = `${BASE_URL}#${a.code}`;
+
             content.innerHTML = `
                 <div class="text-center space-y-3">
+                    <div class="h-40 rounded-xl overflow-hidden bg-slate-100 border shadow-inner">
+                        <img src="${a.image || 'https://via.placeholder.com/300?text=No+Image'}" class="w-full h-full object-cover">
+                    </div>
                     <h3 class="font-bold text-xl text-emerald-800">${a.name}</h3>
-                    <p class="text-xs text-slate-500">الكود التعريفي: <span class="bg-slate-100 px-2 py-1 rounded font-mono font-bold">${a.code}</span></p>
-                    <p class="text-xs text-slate-500">المكان: ${a.location}</p>
+                    <p class="text-xs text-slate-500">الكود: <span class="bg-slate-100 px-2 py-1 rounded font-mono font-bold text-emerald-700">${a.code}</span> | المكان: ${a.location}</p>
+                    <p class="text-xs text-emerald-600 font-semibold">الحالة: ${a.status}</p>
                     <div id="modal-qrcode" class="flex justify-center p-2 bg-white border rounded-xl my-2"></div>
-                    <p class="text-xs text-slate-400">امسح الرمز للكشف عن بيانات الممتلك فوراً</p>
+                    <p class="text-[11px] text-slate-400">عند مسح هذا الرمز بأي كاميرا هاتف، سيتجه فوراً إلى هذه الصفحة ويعرض صورة هذا الغرض</p>
                 </div>
             `;
             modal.classList.remove('hidden');
 
-            // توليد QR داخل النافذة
+            // توليد QR يحتوي على الرابط المباشر لموقعك
             setTimeout(() => {
                 document.getElementById('modal-qrcode').innerHTML = "";
                 new QRCode(document.getElementById('modal-qrcode'), {
-                    text: a.code,
-                    width: 120,
-                    height: 120
+                    text: directUrl,
+                    width: 130,
+                    height: 130
                 });
             }, 100);
         }
 
         function closeModal() {
             document.getElementById('modal').classList.add('hidden');
+            window.location.hash = ''; // مسح الـ Hash عند إغلاق النافذة
         }
 
         // شبكة طباعة الملصقات المصغرة A4
@@ -351,7 +379,7 @@
                 return;
             }
 
-            printGrid.innerHTML = allAssets.map((a, index) => `
+            printGrid.innerHTML = allAssets.map((a) => `
                 <div class="border border-dashed border-slate-400 p-3 rounded-lg bg-white flex items-center justify-between shadow-2xs relative print-sticker">
                     <div class="absolute top-1 left-1 no-print">
                         <input type="checkbox" class="print-checkbox w-4 h-4 accent-emerald-600" value="${a.id}" checked>
@@ -362,16 +390,16 @@
                         <div class="text-[10px] font-mono bg-slate-100 px-1 py-0.5 rounded inline-block font-bold">${a.code}</div>
                         <p class="text-[10px] text-slate-500">📍 ${a.location}</p>
                     </div>
-                    <div class="qr-code-box flex-shrink-0 ml-2" data-code="${a.code}"></div>
+                    <div class="qr-code-box flex-shrink-0 ml-2" data-url="${BASE_URL}#${a.code}"></div>
                 </div>
             `).join('');
 
-            // توليد رموز QR للملصقات
+            // توليد رموز QR للملصقات بالرابط المباشر
             setTimeout(() => {
                 document.querySelectorAll('.qr-code-box').forEach(el => {
                     el.innerHTML = "";
                     new QRCode(el, {
-                        text: el.getAttribute('data-code'),
+                        text: el.getAttribute('data-url'),
                         width: 55,
                         height: 55
                     });
@@ -383,7 +411,7 @@
             document.querySelectorAll('.print-checkbox').forEach(cb => cb.checked = select);
         }
 
-        // ماسح الكاميرا (QR Scanner)
+        // ماسح الكاميرا الداخلي
         function initScanner() {
             if(html5QrCode) return;
             html5QrCode = new Html5Qrcode("reader");
@@ -391,8 +419,11 @@
                 { facingMode: "environment" },
                 { fps: 10, qrbox: { width: 200, height: 200 } },
                 qrCodeMessage => {
-                    // عند نجاح المسح ومطابقة الكود
-                    const found = allAssets.find(a => a.code === qrCodeMessage);
+                    let code = qrCodeMessage;
+                    if(qrCodeMessage.includes('#')) {
+                        code = qrCodeMessage.split('#')[1];
+                    }
+                    const found = allAssets.find(a => a.code === code);
                     const resBox = document.getElementById('scan-result');
                     const detailsBox = document.getElementById('scanned-details');
                     
@@ -406,7 +437,7 @@
                             <button onclick="showDetails('${found.id}')" class="mt-2 bg-emerald-600 text-white px-3 py-1 rounded text-xs">عرض البطاقة الكاملة</button>
                         `;
                     } else {
-                        detailsBox.innerHTML = `<p class="text-red-600">الكود "${qrCodeMessage}" غير مسجل في قاعدة البيانات السحابية.</p>`;
+                        detailsBox.innerHTML = `<p class="text-red-600">الكود "${code}" غير مسجل في قاعدة البيانات.</p>`;
                     }
                 },
                 errorMessage => {}

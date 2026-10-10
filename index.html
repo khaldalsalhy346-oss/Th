@@ -7,14 +7,14 @@
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Google Fonts: Cairo -->
-    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&display=swap" rel="stylesheet">
     <!-- FontAwesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- QRCode JS Generation -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <!-- HTML5 QR Code Scanner -->
     <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
-    <!-- html2pdf Library for PDF export -->
+    <!-- html2pdf Library -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 
     <!-- Firebase SDKs -->
@@ -41,8 +41,10 @@
         window.deleteDoc = deleteDoc;
         window.doc = doc;
         
-        // تشغيل الجلب السحابي فور توفر الاتصال
-        if(window.initAppCloud) window.initAppCloud();
+        // تشغيل الجلب السحابي المباشر فور تحميل التطبيق
+        document.addEventListener("DOMContentLoaded", () => {
+            if(window.loadAssetsFromCloud) window.loadAssetsFromCloud();
+        });
     </script>
 
     <script>
@@ -57,74 +59,73 @@
                             700: '#15803d',
                             800: '#166534',
                             900: '#14532d',
-                            gold: '#d97706',
-                            goldDark: '#b45309'
+                            gold: '#d97706'
                         }
                     },
-                    fontFamily: {
-                        sans: ['Cairo', 'sans-serif'],
-                    }
+                    fontFamily: { sans: ['Cairo', 'sans-serif'] }
                 }
             }
         }
     </script>
     <style>
         body { font-family: 'Cairo', sans-serif; background-color: #f8fafc; }
+        
+        /* حجم الملصق المصغر والواضح جداً (Compact Sticker Size) */
         .sticker-card {
-            width: 85mm;
-            height: 38mm;
+            width: 65mm;
+            height: 28mm;
             box-sizing: border-box;
             page-break-inside: avoid;
             background: #ffffff;
-            border: 1px dashed #4b5563;
-            border-radius: 8px;
-            padding: 8px;
+            border: 1px solid #111827;
+            border-radius: 6px;
+            padding: 4px 6px;
             display: flex;
             align-items: center;
             justify-content: space-between;
-            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+            box-shadow: none;
         }
         @media print {
             .no-print { display: none !important; }
             body { background: white !important; margin: 0; padding: 0; }
-            @page { size: A4 portrait; margin: 10mm; }
+            @page { size: A4 portrait; margin: 5mm; }
             .a4-print-grid {
                 display: flex !important;
                 flex-wrap: wrap !important;
-                gap: 5mm !important;
+                gap: 3mm !important;
             }
         }
     </style>
 </head>
-<body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col justify-between">
+<body class="bg-slate-50 text-slate-900 min-h-screen flex flex-col justify-between">
 
     <!-- Navbar -->
-    <header class="bg-gradient-to-r from-brand-900 via-brand-800 to-brand-900 text-white shadow-lg sticky top-0 z-40 border-b-2 border-brand-gold no-print">
+    <header class="bg-brand-900 text-white shadow-lg sticky top-0 z-40 border-b-2 border-brand-gold no-print">
         <div class="max-w-7xl mx-auto px-4 py-3 flex flex-wrap justify-between items-center gap-2">
             <div class="flex items-center space-x-3 space-x-reverse cursor-pointer" onclick="switchTab('dashboard')">
-                <div class="w-11 h-11 bg-emerald-800 rounded-full flex items-center justify-center border-2 border-amber-400">
-                    <i class="fa-solid fa-book-quran text-amber-300 text-xl"></i>
+                <div class="w-10 h-10 bg-emerald-800 rounded-full flex items-center justify-center border border-amber-400">
+                    <i class="fa-solid fa-book-quran text-amber-300"></i>
                 </div>
                 <div>
-                    <h1 class="text-xl font-bold text-amber-100">دار سفوان القرآنية</h1>
-                    <p class="text-xs text-emerald-200">النظام السحابي المحدث للممتلكات</p>
+                    <h1 class="text-lg font-bold text-amber-100">دار سفوان القرآنية</h1>
+                    <p class="text-[11px] text-emerald-200">النظام السحابي للممتلكات</p>
                 </div>
             </div>
 
             <nav class="flex items-center space-x-1 space-x-reverse overflow-x-auto py-1 text-sm font-medium">
-                <button onclick="switchTab('dashboard')" id="nav-dashboard" class="px-3 py-2 rounded-lg flex items-center gap-2 bg-brand-700 text-amber-300 shadow-sm">
+                <button onclick="switchTab('dashboard')" id="nav-dashboard" class="px-3 py-1.5 rounded-lg flex items-center gap-1.5 bg-brand-700 text-amber-300">
                     <i class="fa-solid fa-chart-pie"></i><span>الرئيسية</span>
                 </button>
-                <button onclick="switchTab('add-asset')" id="nav-add-asset" class="px-3 py-2 rounded-lg flex items-center gap-2 hover:bg-brand-700/60 text-slate-100">
-                    <i class="fa-solid fa-plus-circle"></i><span>إضافة ممتلك</span>
+                <button onclick="switchTab('add-asset')" id="nav-add-asset" class="px-3 py-1.5 rounded-lg flex items-center gap-1.5 hover:bg-brand-700/60 text-slate-100">
+                    <i class="fa-solid fa-plus-circle"></i><span>إضافة</span>
                 </button>
-                <button onclick="switchTab('inventory')" id="nav-inventory" class="px-3 py-2 rounded-lg flex items-center gap-2 hover:bg-brand-700/60 text-slate-100">
+                <button onclick="switchTab('inventory')" id="nav-inventory" class="px-3 py-1.5 rounded-lg flex items-center gap-1.5 hover:bg-brand-700/60 text-slate-100">
                     <i class="fa-solid fa-boxes-stacked"></i><span>المخزون السحابي</span>
                 </button>
-                <button onclick="switchTab('print-stickers')" id="nav-print-stickers" class="px-3 py-2 rounded-lg flex items-center gap-2 hover:bg-brand-700/60 text-slate-100">
-                    <i class="fa-solid fa-file-pdf text-amber-300"></i><span>حفظ ملصقات PDF</span>
+                <button onclick="switchTab('print-stickers')" id="nav-print-stickers" class="px-3 py-1.5 rounded-lg flex items-center gap-1.5 hover:bg-brand-700/60 text-slate-100">
+                    <i class="fa-solid fa-file-pdf text-amber-300"></i><span>ملصقات PDF</span>
                 </button>
-                <button onclick="switchTab('scanner')" id="nav-scanner" class="px-3 py-2 rounded-lg flex items-center gap-2 hover:bg-brand-700/60 text-slate-100">
+                <button onclick="switchTab('scanner')" id="nav-scanner" class="px-3 py-1.5 rounded-lg flex items-center gap-1.5 hover:bg-brand-700/60 text-slate-100">
                     <i class="fa-solid fa-qrcode"></i><span>ماسح QR</span>
                 </button>
             </nav>
@@ -132,49 +133,49 @@
     </header>
 
     <main class="max-w-7xl mx-auto px-4 py-6 flex-grow w-full">
-        <div id="toast" class="fixed bottom-5 left-5 z-50 transform translate-y-20 opacity-0 transition-all duration-300 bg-slate-900 text-white px-5 py-3 rounded-xl shadow-2xl flex items-center gap-3 border-r-4 border-emerald-500 max-w-md no-print">
-            <i id="toast-icon" class="fa-solid fa-circle-check text-emerald-400 text-lg"></i>
-            <span id="toast-message" class="text-sm font-medium">تمت العملية بنجاح</span>
+        <div id="toast" class="fixed bottom-5 left-5 z-50 transform translate-y-20 opacity-0 transition-all duration-300 bg-slate-900 text-white px-4 py-2.5 rounded-xl shadow-2xl flex items-center gap-2 border-r-4 border-emerald-500 text-xs no-print">
+            <i id="toast-icon" class="fa-solid fa-circle-check text-emerald-400"></i>
+            <span id="toast-message">تمت العملية بنجاح</span>
         </div>
 
         <!-- TAB 1: DASHBOARD -->
         <section id="tab-dashboard" class="tab-content space-y-6">
             <div class="bg-gradient-to-l from-brand-800 to-emerald-900 text-white rounded-2xl p-6 shadow-md border border-brand-700">
-                <h2 class="text-2xl font-extrabold text-amber-50">لوحة المتابعة السحابية لدار سفوان</h2>
-                <p class="text-emerald-100 text-sm mt-2">البيانات الآن مربوطة تماماً بقاعدة بيانات السحابة (Firebase) وتظهر فوراً على جميع الأجهزة والهواتف المرتبطة.</p>
+                <h2 class="text-2xl font-extrabold text-amber-50">نظام إدارة ممتلكات دار سفوان</h2>
+                <p class="text-emerald-100 text-sm mt-2">البيانات متزامنة الآن سحابياً بين جميع الهواتف والحواسيب بشكل فوري.</p>
                 <div class="mt-4 flex gap-3">
                     <button onclick="switchTab('add-asset')" class="bg-amber-500 text-brand-900 font-bold px-4 py-2 rounded-xl text-sm">إضافة ممتلك جديد</button>
-                    <button onclick="switchTab('print-stickers')" class="bg-white/10 text-white font-medium px-4 py-2 rounded-xl text-sm border border-white/20">تحميل الملصقات PDF</button>
+                    <button onclick="loadAssetsFromCloud()" class="bg-white/10 text-white font-medium px-4 py-2 rounded-xl text-sm border border-white/20">تحديث البيانات 🔄</button>
                 </div>
             </div>
             <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-                <div class="bg-white p-5 rounded-2xl shadow-sm border flex items-center justify-between">
+                <div class="bg-white p-4 rounded-2xl shadow-sm border flex items-center justify-between">
                     <div>
                         <p class="text-slate-500 text-xs">إجمالي الممتلكات</p>
-                        <h3 id="stat-total" class="text-3xl font-extrabold text-slate-800 mt-1">0</h3>
+                        <h3 id="stat-total" class="text-3xl font-black text-slate-900 mt-1">0</h3>
                     </div>
-                    <div class="w-12 h-12 bg-emerald-100 text-emerald-700 rounded-xl flex items-center justify-center text-xl"><i class="fa-solid fa-boxes-stacked"></i></div>
+                    <div class="w-10 h-10 bg-emerald-100 text-emerald-700 rounded-xl flex items-center justify-center"><i class="fa-solid fa-boxes-stacked"></i></div>
                 </div>
-                <div class="bg-white p-5 rounded-2xl shadow-sm border flex items-center justify-between">
+                <div class="bg-white p-4 rounded-2xl shadow-sm border flex items-center justify-between">
                     <div>
                         <p class="text-slate-500 text-xs">ممتاز</p>
-                        <h3 id="stat-excellent" class="text-3xl font-extrabold text-emerald-600 mt-1">0</h3>
+                        <h3 id="stat-excellent" class="text-3xl font-black text-emerald-600 mt-1">0</h3>
                     </div>
-                    <div class="w-12 h-12 bg-emerald-50 text-emerald-600 rounded-xl flex items-center justify-center text-xl"><i class="fa-solid fa-circle-check"></i></div>
+                    <div class="w-10 h-10 bg-emerald-50 text-emerald-600 rounded-xl flex items-center justify-center"><i class="fa-solid fa-circle-check"></i></div>
                 </div>
-                <div class="bg-white p-5 rounded-2xl shadow-sm border flex items-center justify-between">
+                <div class="bg-white p-4 rounded-2xl shadow-sm border flex items-center justify-between">
                     <div>
                         <p class="text-slate-500 text-xs">جيد</p>
-                        <h3 id="stat-good" class="text-3xl font-extrabold text-blue-600 mt-1">0</h3>
+                        <h3 id="stat-good" class="text-3xl font-black text-blue-600 mt-1">0</h3>
                     </div>
-                    <div class="w-12 h-12 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center text-xl"><i class="fa-solid fa-thumbs-up"></i></div>
+                    <div class="w-10 h-10 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center"><i class="fa-solid fa-thumbs-up"></i></div>
                 </div>
-                <div class="bg-white p-5 rounded-2xl shadow-sm border flex items-center justify-between">
+                <div class="bg-white p-4 rounded-2xl shadow-sm border flex items-center justify-between">
                     <div>
                         <p class="text-slate-500 text-xs">يحتاج صيانة</p>
-                        <h3 id="stat-maintenance" class="text-3xl font-extrabold text-amber-600 mt-1">0</h3>
+                        <h3 id="stat-maintenance" class="text-3xl font-black text-amber-600 mt-1">0</h3>
                     </div>
-                    <div class="w-12 h-12 bg-amber-50 text-amber-600 rounded-xl flex items-center justify-center text-xl"><i class="fa-solid fa-wrench"></i></div>
+                    <div class="w-10 h-10 bg-amber-50 text-amber-600 rounded-xl flex items-center justify-center"><i class="fa-solid fa-wrench"></i></div>
                 </div>
             </div>
         </section>
@@ -182,43 +183,38 @@
         <!-- TAB 2: ADD ASSET -->
         <section id="tab-add-asset" class="tab-content hidden max-w-3xl mx-auto">
             <div class="bg-white rounded-2xl shadow-md border overflow-hidden">
-                <div class="bg-gradient-to-r from-brand-800 to-brand-900 text-white p-5">
-                    <h2 class="text-xl font-bold text-amber-300">إضافة ممتلك سحابي جديد</h2>
+                <div class="bg-brand-800 text-white p-4">
+                    <h2 class="text-lg font-bold text-amber-300">إضافة ممتلك سحابي جديد</h2>
                 </div>
-                <form id="asset-form" class="p-6 space-y-5" onsubmit="handleSaveAsset(event)">
-                    <div class="space-y-2">
-                        <label class="block text-xs font-bold text-slate-700">صورة الممتلك <span class="text-red-500">*</span></label>
-                        <div class="flex flex-col sm:flex-row items-center gap-4">
-                            <div class="w-full sm:w-40 h-40 rounded-xl border-2 border-dashed border-slate-300 bg-slate-50 flex items-center justify-center overflow-hidden relative">
+                <form id="asset-form" class="p-5 space-y-4" onsubmit="handleSaveAsset(event)">
+                    <div class="space-y-1">
+                        <label class="block text-xs font-bold text-slate-700">صورة الممتلك</label>
+                        <div class="flex items-center gap-3">
+                            <div class="w-24 h-24 rounded-xl border-2 border-dashed bg-slate-50 flex items-center justify-center overflow-hidden relative">
                                 <img id="preview-img" class="w-full h-full object-cover hidden" src="">
-                                <div id="preview-placeholder" class="text-center p-3 text-slate-400">
-                                    <i class="fa-solid fa-camera text-3xl mb-1"></i>
-                                    <p class="text-xs">التقط صورة بالكاميرا</p>
+                                <div id="preview-placeholder" class="text-center text-slate-400 text-xs">
+                                    <i class="fa-solid fa-camera text-2xl"></i>
                                 </div>
                             </div>
-                            <div class="flex-1 w-full space-y-2">
-                                <label class="w-full bg-brand-50 hover:bg-brand-100 text-brand-800 border border-brand-200 font-bold py-2.5 px-4 rounded-xl cursor-pointer flex items-center justify-center gap-2 text-sm">
-                                    <i class="fa-solid fa-camera-retro text-brand-600"></i>
-                                    <span>التقاط بالكاميرا أو اختيار صورة</span>
-                                    <input type="file" id="camera-input" accept="image/*" capture="environment" class="hidden" onchange="handleImageSelect(event)">
-                                </label>
-                                <button type="button" onclick="clearImage()" id="clear-img-btn" class="w-full bg-slate-100 text-slate-600 text-xs font-semibold py-2 rounded-xl hidden">إزالة الصورة</button>
-                            </div>
+                            <label class="bg-brand-50 hover:bg-brand-100 text-brand-800 border border-brand-200 font-bold py-2 px-4 rounded-xl cursor-pointer text-xs">
+                                التقط صورة بالكاميرا
+                                <input type="file" id="camera-input" accept="image/*" capture="environment" class="hidden" onchange="handleImageSelect(event)">
+                            </label>
                         </div>
                     </div>
 
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
                         <div>
-                            <label class="block text-xs font-bold text-slate-700 mb-1">اسم الممتلك <span class="text-red-500">*</span></label>
-                            <input type="text" id="asset-name" required placeholder="مثال: مكيف سبليت 2 طن" class="w-full border rounded-xl px-3.5 py-2.5 text-sm">
+                            <label class="block text-xs font-bold text-slate-700 mb-1">اسم الممتلك *</label>
+                            <input type="text" id="asset-name" required placeholder="مثال: مكيف سبليت" class="w-full border rounded-xl px-3 py-2 text-sm">
                         </div>
                         <div>
-                            <label class="block text-xs font-bold text-slate-700 mb-1">المكان / القاعة <span class="text-red-500">*</span></label>
-                            <input type="text" id="asset-location" required placeholder="مثال: القاعة الكبرى" class="w-full border rounded-xl px-3.5 py-2.5 text-sm">
+                            <label class="block text-xs font-bold text-slate-700 mb-1">المكان / القاعة *</label>
+                            <input type="text" id="asset-location" required placeholder="مثال: القاعة الكبرى" class="w-full border rounded-xl px-3 py-2 text-sm">
                         </div>
                         <div>
-                            <label class="block text-xs font-bold text-slate-700 mb-1">حالة الممتلك <span class="text-red-500">*</span></label>
-                            <select id="asset-status" required class="w-full border rounded-xl px-3.5 py-2.5 text-sm bg-white">
+                            <label class="block text-xs font-bold text-slate-700 mb-1">الحالة *</label>
+                            <select id="asset-status" required class="w-full border rounded-xl px-3 py-2 text-sm bg-white">
                                 <option value="ممتاز">ممتاز</option>
                                 <option value="جيد">جيد</option>
                                 <option value="يحتاج صيانة">يحتاج صيانة</option>
@@ -226,16 +222,11 @@
                         </div>
                         <div>
                             <label class="block text-xs font-bold text-slate-700 mb-1">التصنيف</label>
-                            <input type="text" id="asset-category" placeholder="مثال: تبريد، أثاث..." class="w-full border rounded-xl px-3.5 py-2.5 text-sm">
+                            <input type="text" id="asset-category" placeholder="تبريد، أثاث..." class="w-full border rounded-xl px-3 py-2 text-sm">
                         </div>
                     </div>
 
-                    <div>
-                        <label class="block text-xs font-bold text-slate-700 mb-1">ملاحظات إضافية</label>
-                        <textarea id="asset-notes" rows="3" placeholder="ملاحظات..." class="w-full border rounded-xl px-3.5 py-2 text-sm"></textarea>
-                    </div>
-
-                    <button type="submit" id="save-btn" class="w-full py-3 rounded-xl bg-brand-700 hover:bg-brand-800 text-white font-bold text-sm shadow-md transition">
+                    <button type="submit" id="save-btn" class="w-full py-2.5 rounded-xl bg-brand-700 hover:bg-brand-800 text-white font-bold text-sm shadow">
                         حفظ سحابياً وتوليد الرابط المباشر 🚀
                     </button>
                 </form>
@@ -243,46 +234,37 @@
         </section>
 
         <!-- TAB 3: INVENTORY -->
-        <section id="tab-inventory" class="tab-content hidden space-y-5">
-            <div class="bg-white rounded-2xl p-4 shadow-sm border flex flex-col md:flex-row gap-3 items-center justify-between">
-                <div class="relative w-full md:w-80">
-                    <i class="fa-solid fa-magnifying-glass absolute right-3.5 top-3 text-slate-400 text-sm"></i>
-                    <input type="text" id="search-input" oninput="renderInventory()" placeholder="بحث باسم الممتلك أو الكود..." class="w-full border rounded-xl pr-10 pl-3 py-2 text-sm">
-                </div>
-                <button onclick="loadAssetsFromCloud()" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-4 py-2 rounded-xl text-xs">
-                    تحديث القائمة من السحابة 🔄
-                </button>
+        <section id="tab-inventory" class="tab-content hidden space-y-4">
+            <div class="bg-white rounded-2xl p-4 shadow-sm border flex justify-between items-center">
+                <input type="text" id="search-input" oninput="renderInventory()" placeholder="بحث سريع..." class="w-full md:w-72 border rounded-xl px-3 py-2 text-sm">
+                <button onclick="loadAssetsFromCloud()" class="bg-emerald-600 text-white font-bold px-3 py-2 rounded-xl text-xs whitespace-nowrap ml-2">تحديث 🔄</button>
             </div>
-            <div id="inventory-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5"></div>
+            <div id="inventory-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
         </section>
 
-        <!-- TAB 4: PRINT / PDF STICKERS A4 -->
-        <section id="tab-print-stickers" class="tab-content hidden space-y-6">
-            <div class="bg-white p-5 rounded-2xl shadow-sm border no-print flex flex-col md:flex-row justify-between items-center gap-4">
-                <div>
-                    <h2 class="text-lg font-bold text-slate-800">تصدير الملصقات إلى ملف PDF</h2>
-                    <p class="text-xs text-slate-500">التصميم الأفقي: الاسم والكود يميناً، والـ QR يساراً. احفظ الملف كـ PDF واطبعه براحتك.</p>
-                </div>
-                <button onclick="downloadPDF()" class="px-6 py-3 rounded-xl bg-brand-700 hover:bg-brand-800 text-white font-bold text-sm flex items-center gap-2 shadow">
-                    <i class="fa-solid fa-file-pdf"></i> حفظ ورقة الملصقات كملف PDF 📄
+        <!-- TAB 4: PRINT / PDF STICKERS -->
+        <section id="tab-print-stickers" class="tab-content hidden space-y-4">
+            <div class="bg-white p-4 rounded-2xl shadow-sm border no-print flex justify-between items-center">
+                <p class="text-xs text-slate-500">حجم ملصق مصغر وواضح جداً (اسم الدار واسم المنتج يميناً، الكود تحته، والـ QR يساراً).</p>
+                <button onclick="downloadPDF()" class="px-5 py-2 rounded-xl bg-brand-700 text-white font-bold text-xs flex items-center gap-1.5 shadow">
+                    <i class="fa-solid fa-file-pdf"></i> حفظ كملف PDF 📄
                 </button>
             </div>
-            <!-- Printable Sheet Area -->
             <div class="bg-white p-6 rounded-2xl shadow-sm border">
-                <div id="a4-stickers-container" class="a4-print-grid flex flex-wrap gap-4 justify-start"></div>
+                <div id="a4-stickers-container" class="a4-print-grid flex flex-wrap gap-3 justify-start"></div>
             </div>
         </section>
 
         <!-- TAB 5: SCANNER -->
         <section id="tab-scanner" class="tab-content hidden max-w-xl mx-auto space-y-4">
             <div class="bg-white rounded-2xl p-6 shadow-md text-center">
-                <h2 class="text-xl font-bold text-slate-800">ماسح رمز QR</h2>
-                <div class="mt-4 relative rounded-2xl overflow-hidden bg-slate-900 border-2 border-brand-600">
-                    <div id="reader" class="w-full min-h-[280px]"></div>
+                <h2 class="text-lg font-bold text-slate-800">ماسح رمز QR</h2>
+                <div class="mt-3 relative rounded-xl overflow-hidden bg-slate-900 border-2 border-brand-600">
+                    <div id="reader" class="w-full min-h-[250px]"></div>
                 </div>
-                <div class="mt-4 flex gap-2 justify-center">
-                    <button onclick="startScanner()" class="bg-brand-700 text-white font-bold px-4 py-2 rounded-xl text-sm">تشغيل الكاميرا</button>
-                    <button onclick="stopScanner()" class="bg-slate-200 text-slate-700 font-semibold px-4 py-2 rounded-xl text-sm">إيقاف</button>
+                <div class="mt-3 flex gap-2 justify-center">
+                    <button onclick="startScanner()" class="bg-brand-700 text-white font-bold px-3 py-1.5 rounded-xl text-xs">تشغيل الكاميرا</button>
+                    <button onclick="stopScanner()" class="bg-slate-200 text-slate-700 font-semibold px-3 py-1.5 rounded-xl text-xs">إيقاف</button>
                 </div>
             </div>
         </section>
@@ -290,29 +272,29 @@
 
     <!-- MODAL -->
     <div id="asset-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4 no-print">
-        <div class="bg-white rounded-3xl shadow-2xl max-w-md w-full overflow-hidden p-5 space-y-4 relative">
-            <button onclick="closeModal()" class="absolute top-4 left-4 text-slate-400 font-bold text-lg">✕</button>
-            <div class="flex gap-4 items-center">
-                <img id="modal-img" class="w-24 h-24 object-cover rounded-xl border" src="">
-                <div class="space-y-1">
-                    <span id="modal-code" class="bg-slate-900 text-amber-300 font-mono text-xs font-bold px-2 py-0.5 rounded"></span>
-                    <h4 id="modal-title" class="font-bold text-slate-800 text-base"></h4>
+        <div class="bg-white rounded-3xl shadow-2xl max-w-sm w-full overflow-hidden p-5 space-y-3 relative">
+            <button onclick="closeModal()" class="absolute top-3 left-3 text-slate-400 font-bold">✕</button>
+            <div class="flex gap-3 items-center">
+                <img id="modal-img" class="w-20 h-20 object-cover rounded-xl border" src="">
+                <div class="space-y-0.5">
+                    <span id="modal-code" class="bg-slate-900 text-amber-300 font-mono text-[10px] font-bold px-1.5 py-0.5 rounded"></span>
+                    <h4 id="modal-title" class="font-bold text-slate-900 text-sm"></h4>
                     <p id="modal-location" class="text-xs text-slate-500"></p>
                 </div>
             </div>
-            <!-- تصميم البطاقة الأفقي الصحيح في المعاينة -->
+            <!-- معاينة الملصق المصغر الواضح -->
             <div class="sticker-card mx-auto">
-                <div class="flex flex-col justify-between h-full space-y-1 pr-2 flex-1 overflow-hidden">
+                <div class="flex flex-col justify-between h-full space-y-0.5 pr-1 flex-1 overflow-hidden">
                     <div>
-                        <p class="text-[9px] text-brand-800 font-extrabold leading-none">دار سفوان القرآنية</p>
-                        <h4 id="modal-sticker-title" class="font-extrabold text-slate-900 text-[11px] truncate mt-0.5"></h4>
+                        <p class="text-[8px] text-brand-900 font-black leading-tight">دار سفوان القرآنية</p>
+                        <h4 id="modal-sticker-title" class="font-black text-slate-900 text-[10px] truncate leading-tight"></h4>
                     </div>
                     <div>
-                        <span id="modal-sticker-code" class="bg-slate-900 text-amber-300 font-mono text-[10px] px-1.5 py-0.5 rounded"></span>
-                        <p id="modal-sticker-loc" class="text-[9px] text-slate-600 truncate mt-0.5"></p>
+                        <span id="modal-sticker-code" class="bg-slate-900 text-amber-300 font-mono text-[9px] font-bold px-1 py-0.2 rounded"></span>
+                        <p id="modal-sticker-loc" class="text-[8px] text-slate-600 truncate"></p>
                     </div>
                 </div>
-                <div id="modal-sticker-qr" class="flex-shrink-0 bg-white p-1 rounded border"></div>
+                <div id="modal-sticker-qr" class="flex-shrink-0 bg-white p-0.5 rounded border"></div>
             </div>
             <button onclick="deleteAssetFromModal()" class="w-full py-2 bg-red-50 text-red-600 font-bold text-xs rounded-xl">حذف هذا الممتلك نهائياً</button>
         </div>
@@ -325,20 +307,6 @@
         let html5QrCode = null;
         const BASE_URL = "https://khaldalsalhy346-oss.github.io/Th/";
 
-        window.addEventListener('DOMContentLoaded', () => {
-            if(window.initAppCloud) initAppCloud();
-        });
-
-        async function initAppCloud() {
-            await loadAssetsFromCloud();
-            const hash = window.location.hash.replace('#', '');
-            if(hash && hash.startsWith('SUF-')) {
-                const found = assets.find(a => a.code === hash);
-                if(found) openAssetModal(found.id);
-            }
-        }
-        window.initAppCloud = initAppCloud;
-
         async function loadAssetsFromCloud() {
             try {
                 if(!window.db) return;
@@ -349,11 +317,13 @@
                 });
                 renderDashboard();
                 renderInventory();
+                renderPrintStickersPage();
                 showToast(`تمت مزامنة ${assets.length} ممتلك سحابياً بنجاح`);
             } catch (error) {
                 showToast("تعذر الاتصال بالسحابة", "error");
             }
         }
+        window.loadAssetsFromCloud = loadAssetsFromCloud;
 
         function switchTab(tabName) {
             document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
@@ -388,8 +358,8 @@
                 img.src = e.target.result;
                 img.onload = () => {
                     const canvas = document.createElement('canvas');
-                    const MAX_WIDTH = 500;
-                    const MAX_HEIGHT = 500;
+                    const MAX_WIDTH = 400;
+                    const MAX_HEIGHT = 400;
                     let width = img.width;
                     let height = img.height;
                     if (width > height) { if (width > MAX_WIDTH) { height *= MAX_WIDTH / width; width = MAX_WIDTH; } }
@@ -397,52 +367,43 @@
                     canvas.width = width; canvas.height = height;
                     const ctx = canvas.getContext('2d');
                     ctx.drawImage(img, 0, 0, width, height);
-                    const compressed = canvas.toDataURL('image/jpeg', 0.6);
+                    const compressed = canvas.toDataURL('image/jpeg', 0.5);
                     document.getElementById('preview-img').src = compressed;
                     document.getElementById('preview-img').classList.remove('hidden');
                     document.getElementById('preview-placeholder').classList.add('hidden');
-                    document.getElementById('clear-img-btn').classList.remove('hidden');
                 };
             };
             reader.readAsDataURL(file);
         }
 
-        function clearImage() {
-            document.getElementById('preview-img').src = '';
-            document.getElementById('preview-img').classList.add('hidden');
-            document.getElementById('preview-placeholder').classList.remove('hidden');
-            document.getElementById('clear-img-btn').classList.add('hidden');
-            document.getElementById('camera-input').value = '';
-        }
-
         async function handleSaveAsset(event) {
             event.preventDefault();
             const btn = document.getElementById('save-btn');
-            btn.textContent = "جاري الحفظ في السحابة...";
+            btn.textContent = "جاري الحفظ بالسحابة...";
             btn.disabled = true;
 
             const name = document.getElementById('asset-name').value.trim();
             const location = document.getElementById('asset-location').value.trim();
             const status = document.getElementById('asset-status').value;
             const category = document.getElementById('asset-category').value.trim();
-            const notes = document.getElementById('asset-notes').value.trim();
             const previewImgSrc = document.getElementById('preview-img').src;
 
             const image = (previewImgSrc && previewImgSrc !== window.location.href) ? previewImgSrc : '';
             const randomNum = Math.floor(1000 + Math.random() * 9000);
             const code = `SUF-${randomNum}`;
 
-            const newAsset = { code, name, location, status, category, notes, image, createdAt: new Date().toISOString() };
+            const newAsset = { code, name, location, status, category, image, createdAt: new Date().toISOString() };
 
             try {
                 await window.addDoc(window.collection(window.db, "sufwan_assets"), newAsset);
-                showToast('تم الحفظ في السحابة بنجاح!');
+                showToast('تم الحفظ ومزامنة السحابة بنجاح!');
                 document.getElementById('asset-form').reset();
-                clearImage();
+                document.getElementById('preview-img').classList.add('hidden');
+                document.getElementById('preview-placeholder').classList.remove('hidden');
                 await loadAssetsFromCloud();
                 switchTab('inventory');
             } catch (err) {
-                showToast("فشل الحفظ بالسحابة", "error");
+                showToast("فشل الحفظ", "error");
             } finally {
                 btn.textContent = "حفظ سحابياً وتوليد الرابط المباشر 🚀";
                 btn.disabled = false;
@@ -461,7 +422,7 @@
             );
 
             if (filtered.length === 0) {
-                grid.innerHTML = `<p class="text-xs text-slate-400 col-span-full text-center py-8">لا توجد ممتلكات مطابقة.</p>`;
+                grid.innerHTML = `<p class="text-xs text-slate-400 col-span-full text-center py-6">لا توجد ممتلكات مسجلة.</p>`;
                 return;
             }
 
@@ -470,17 +431,17 @@
                 card.className = 'bg-white border rounded-2xl overflow-hidden shadow-sm flex flex-col justify-between';
                 card.innerHTML = `
                     <div>
-                        <div class="relative h-44 bg-slate-100">
+                        <div class="relative h-36 bg-slate-100">
                             <img src="${asset.image || ''}" class="w-full h-full object-cover">
-                            <span class="absolute top-3 right-3 bg-slate-900 text-amber-300 font-mono text-xs px-2.5 py-1 rounded-lg">${asset.code}</span>
+                            <span class="absolute top-2 right-2 bg-slate-900 text-amber-300 font-mono text-xs px-2 py-0.5 rounded">${asset.code}</span>
                         </div>
-                        <div class="p-4 space-y-1">
-                            <h3 class="font-bold text-slate-800 text-base">${asset.name}</h3>
+                        <div class="p-3 space-y-0.5">
+                            <h3 class="font-bold text-slate-900 text-sm">${asset.name}</h3>
                             <p class="text-xs text-slate-500"><i class="fa-solid fa-location-dot"></i> ${asset.location}</p>
                         </div>
                     </div>
-                    <div class="p-3 bg-slate-50 border-t flex justify-between items-center">
-                        <button onclick="openAssetModal('${asset.id}')" class="text-xs font-bold text-brand-700 bg-brand-50 px-3 py-1.5 rounded-lg">عرض البطاقة</button>
+                    <div class="p-2.5 bg-slate-50 border-t flex justify-between items-center">
+                        <button onclick="openAssetModal('${asset.id}')" class="text-xs font-bold text-brand-700 bg-brand-50 px-2.5 py-1 rounded-lg">عرض البطاقة</button>
                         <button onclick="confirmDeleteAsset('${asset.id}')" class="text-red-600 text-xs"><i class="fa-solid fa-trash"></i></button>
                     </div>
                 `;
@@ -488,12 +449,12 @@
             });
         }
 
-        // تنسيق الملصق الأفقي (الاسم فوق، الكود تحته، QR يساراً)
+        // تنسيق الملصق المصغر والواضح جداً (Compact & Clear Sticker)
         function renderPrintStickersPage() {
             const container = document.getElementById('a4-stickers-container');
             container.innerHTML = '';
             if (assets.length === 0) {
-                container.innerHTML = `<p class="text-xs text-slate-400 col-span-full py-8 text-center">لا توجد ممتلكات للتصدير.</p>`;
+                container.innerHTML = `<p class="text-xs text-slate-400 col-span-full py-6 text-center">لا توجد ممتلكات.</p>`;
                 return;
             }
 
@@ -504,17 +465,17 @@
                 const directUrl = `${BASE_URL}#${asset.code}`;
 
                 sticker.innerHTML = `
-                    <div class="flex flex-col justify-between h-full space-y-1 pr-1 flex-1 overflow-hidden">
+                    <div class="flex flex-col justify-between h-full space-y-0.5 pr-1 flex-1 overflow-hidden">
                         <div>
-                            <p class="text-[9px] text-brand-800 font-extrabold leading-none">دار سفوان القرآنية</p>
-                            <h4 class="font-extrabold text-slate-900 text-[11px] truncate mt-0.5">${asset.name}</h4>
+                            <p class="text-[8px] text-brand-900 font-black leading-tight">دار سفوان القرآنية</p>
+                            <h4 class="font-black text-slate-900 text-[10px] truncate leading-tight mt-0.5">${asset.name}</h4>
                         </div>
                         <div>
-                            <span class="bg-slate-900 text-amber-300 font-mono text-[10px] px-1.5 py-0.5 rounded">${asset.code}</span>
-                            <p class="text-[9px] text-slate-600 truncate mt-0.5"><i class="fa-solid fa-location-dot"></i> ${asset.location}</p>
+                            <span class="bg-slate-900 text-amber-300 font-mono text-[9px] font-bold px-1 py-0.2 rounded">${asset.code}</span>
+                            <p class="text-[8px] text-slate-600 truncate mt-0.5"><i class="fa-solid fa-location-dot"></i> ${asset.location}</p>
                         </div>
                     </div>
-                    <div id="${qrId}" class="flex-shrink-0 bg-white p-1 rounded border"></div>
+                    <div id="${qrId}" class="flex-shrink-0 bg-white p-0.5 rounded border border-slate-300"></div>
                 `;
                 container.appendChild(sticker);
 
@@ -522,23 +483,22 @@
                     const el = document.getElementById(qrId);
                     if (el) {
                         el.innerHTML = '';
-                        new QRCode(el, { text: directUrl, width: 55, height: 55, colorDark: "#14532d", colorLight: "#ffffff" });
+                        new QRCode(el, { text: directUrl, width: 45, height: 45, colorDark: "#000000", colorLight: "#ffffff" });
                     }
                 }, 50);
             });
         }
 
-        // حفظ الملصقات كملف PDF
         function downloadPDF() {
             const element = document.getElementById('a4-stickers-container');
             const opt = {
                 margin:       10,
-                filename:     'Sufwan_Assets_Stickers.pdf',
+                filename:     'Sufwan_Stickers.pdf',
                 image:        { type: 'jpeg', quality: 0.98 },
                 html2canvas:  { scale: 2, useCORS: true },
                 jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
             };
-            showToast('جاري تجهيز وتنزيل ملف الـ PDF...');
+            showToast('جاري إنشاء ملف PDF...');
             html2pdf().from(element).set(opt).save();
         }
 
@@ -557,7 +517,7 @@
 
             const qrModal = document.getElementById('modal-sticker-qr');
             qrModal.innerHTML = '';
-            new QRCode(qrModal, { text: `${BASE_URL}#${asset.code}`, width: 55, height: 55 });
+            new QRCode(qrModal, { text: `${BASE_URL}#${asset.code}`, width: 45, height: 45, colorDark: "#000000", colorLight: "#ffffff" });
             document.getElementById('asset-modal').classList.remove('hidden');
         }
 
@@ -567,7 +527,7 @@
         }
 
         async function confirmDeleteAsset(docId) {
-            if (confirm('هل أنت متأكد من حذف هذا الممتلك من السحابة؟')) {
+            if (confirm('هل أنت متأكد من الحذف؟')) {
                 try {
                     await window.deleteDoc(window.doc(window.db, "sufwan_assets", docId));
                     await loadAssetsFromCloud();
@@ -587,7 +547,7 @@
 
         function startScanner() {
             if (!html5QrCode) html5QrCode = new Html5Qrcode("reader");
-            html5QrCode.start({ facingMode: "environment" }, { fps: 10, qrbox: { width: 200, height: 200 } }, (text) => {
+            html5QrCode.start({ facingMode: "environment" }, { fps: 10, qrbox: { width: 180, height: 180 } }, (text) => {
                 stopScanner();
                 let code = text.includes('#') ? text.split('#')[1] : text;
                 const found = assets.find(a => a.code.trim() === code.trim());

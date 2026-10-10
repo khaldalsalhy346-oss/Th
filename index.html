@@ -9,7 +9,6 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
-    <!-- مكتبة تحويل الـ HTML إلى صورة -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
@@ -35,40 +34,43 @@
 
         /* التصميم على الشاشة */
         .sticker-card {
-            width: 62mm; 
+            width: 62mm;
             height: 30mm;
             box-sizing: border-box;
             position: relative;
-            display: flex; 
+            display: flex;
             flex-direction: column;
-            padding: 1.5mm; 
+            padding: 1.5mm;
             background: white;
-            border: 1.5px dashed #000000; /* إطار مقطع أسود واضح للقص */
+            border: 1.5px dashed #000000;
             border-radius: 2mm;
         }
 
         /* إعدادات الطباعة الصارمة */
         @media print {
             .no-print { display: none !important; }
-            
-            body { 
-                background: white !important; 
-                margin: 0 !important; 
-                padding: 0 !important; 
+
+            body {
+                background: white !important;
+                margin: 0 !important;
+                padding: 0 !important;
                 -webkit-print-color-adjust: exact !important;
                 print-color-adjust: exact !important;
             }
-            
-            @page { 
-                size: A4 portrait; 
-                margin: 10mm 5mm; 
+
+            @page {
+                size: A4 portrait;
+                margin: 10mm 5mm;
             }
 
-            header, footer, .tab-content:not(#tab-print-stickers) { display: none !important; }
+            header, footer,
+            .tab-content:not(#tab-print-stickers) { display: none !important; }
+
             #tab-print-stickers { display: block !important; }
-            
-            #tab-print-stickers .bg-white,
-            #tab-print-stickers .rounded-2xl {
+
+            /* استثناء الملصق نفسه من إلغاء الحدود والحشو */
+            #tab-print-stickers .bg-white:not(.sticker-card),
+            #tab-print-stickers .rounded-2xl:not(.sticker-card) {
                 border: none !important;
                 box-shadow: none !important;
                 padding: 0 !important;
@@ -84,10 +86,15 @@
                 width: 100% !important;
             }
 
+            /* إطار القص حول كل ملصق */
             .sticker-card {
-                border: 1.5px dashed #000000 !important; /* إطار مقطع أسود واضح */
+                border: 1.5px dashed #000000 !important;
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+                break-inside: avoid !important;
+                page-break-inside: avoid !important;
             }
-            
+
             img { max-width: 100% !important; height: auto !important; }
         }
 
@@ -356,13 +363,11 @@
                         <button onclick="toggleSelectAllStickers()" class="px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs transition">
                             تحديد / إلغاء الكل
                         </button>
-                        
-                        <!-- زر التنزيل كصورة (الجديد) -->
+
                         <button onclick="downloadStickersAsImage()" class="px-5 py-2.5 rounded-xl bg-brand-700 hover:bg-brand-800 text-white font-bold text-sm shadow transition flex items-center gap-2">
                             <i class="fa-solid fa-download"></i> تنزيل كصورة (للطباعة)
                         </button>
-                        
-                        <!-- زر الطباعة المباشرة (الاحتياطي) -->
+
                         <button onclick="window.print()" class="px-4 py-2.5 rounded-xl bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold text-sm shadow transition flex items-center gap-2">
                             <i class="fa-solid fa-print"></i> طباعة مباشرة
                         </button>
@@ -542,7 +547,6 @@
                 return;
             }
 
-            // إخفاء الملصقات غير المحددة مؤقتاً لأخذ صورة نظيفة
             const wrappers = container.querySelectorAll('.relative.group');
             wrappers.forEach(wrap => {
                 if (wrap.classList.contains('opacity-40')) {
@@ -554,21 +558,19 @@
             showToast('جارٍ إنشاء الصورة، يرجى الانتظار...', 'success');
 
             try {
-                // إعدادات الصورة لتبدو كورقة A4 بيضاء
                 const originalPadding = container.style.padding;
                 const originalBg = container.style.backgroundColor;
-                
-                container.style.padding = '15mm 10mm'; 
+
+                container.style.padding = '15mm 10mm';
                 container.style.backgroundColor = '#ffffff';
 
                 const canvas = await html2canvas(container, {
-                    scale: 3, // دقة عالية جداً
+                    scale: 3,
                     useCORS: true,
                     allowTaint: true,
                     backgroundColor: '#ffffff'
                 });
 
-                // إعادة التنسيق الأصلي
                 container.style.padding = originalPadding;
                 container.style.backgroundColor = originalBg;
                 wrappers.forEach(wrap => {
@@ -578,20 +580,18 @@
                     }
                 });
 
-                // تنزيل الصورة
                 const link = document.createElement('a');
                 link.download = `ملصقات_دار_سفوان_${new Date().toISOString().slice(0,10)}.png`;
                 link.href = canvas.toDataURL('image/png');
                 document.body.appendChild(link);
                 link.click();
                 document.body.removeChild(link);
-                
+
                 showToast('تم تنزيل الصورة بنجاح! يمكنك طباعتها الآن.');
 
             } catch (error) {
                 console.error('Error generating image:', error);
                 showToast('حدث خطأ أثناء إنشاء الصورة', 'error');
-                // إعادة التنسيق في حال حدوث خطأ
                 wrappers.forEach(wrap => {
                     if (wrap.getAttribute('data-hidden') === 'true') {
                         wrap.style.display = '';
@@ -1161,7 +1161,7 @@
                 wrapper.className = `relative group ${isSelected ? '' : 'no-print opacity-40 hover:opacity-100'}`;
 
                 const sticker = document.createElement('div');
-                sticker.className = 'sticker-card bg-white p-2 relative shadow-sm overflow-hidden';
+                sticker.className = 'sticker-card bg-white relative shadow-sm overflow-hidden';
 
                 const qrContainerId = `sticker-qr-${asset.id}-${idx}`;
                 sticker.innerHTML = buildStickerHTML(asset, qrContainerId, true);
@@ -1219,7 +1219,7 @@
             const previewWrap = document.getElementById('modal-sticker-preview');
             previewWrap.innerHTML = '';
             const stickerEl = document.createElement('div');
-            stickerEl.className = 'sticker-card bg-white p-2 relative shadow-sm overflow-hidden';
+            stickerEl.className = 'sticker-card bg-white relative shadow-sm overflow-hidden';
             const qrId = `modal-qr-${asset.id}`;
             stickerEl.innerHTML = buildStickerHTML(asset, qrId, false);
             previewWrap.appendChild(stickerEl);

@@ -31,27 +31,36 @@
     <style>
         body { font-family: 'Cairo', sans-serif; background-color: #f8fafc; }
 
-        /* 3 ملصقات في الصف - 63mm x 60mm */
+        /* 3 ملصقات في الصف - 65mm x 30mm (تصميم أفقي) */
         .sticker-card {
-            width: 63mm; height: 60mm;
+            width: 65mm; 
+            height: 30mm;
             box-sizing: border-box;
             page-break-inside: avoid;
             position: relative;
-            display: flex; flex-direction: column;
+            display: flex; 
+            flex-direction: column;
+            padding: 1.5mm; /* حواشي داخلية مناسبة للحجم الجديد */
         }
 
         @media print {
             .no-print { display: none !important; }
             body { background: white !important; margin: 0 !important; padding: 0 !important; }
-            @page { size: A4 portrait; margin: 8mm 6mm; }
+            /* ضبط الهوامش لتستوعب 3 ملصقات بالعرض في ورقة A4 */
+            @page { size: A4 portrait; margin: 10mm 5mm; }
             .a4-print-grid {
                 display: flex !important; flex-wrap: wrap !important;
-                gap: 3mm !important; justify-content: flex-start !important;
+                gap: 2mm !important; justify-content: flex-start !important;
                 align-content: flex-start !important;
             }
             .sticker-card {
-                border: 1px dashed #999 !important;
-                box-shadow: none !important; background: white !important;
+                border: 1px dashed #86efac !important; /* إطار أخضر فاتح كما في الصورة */
+                border-radius: 2mm !important;
+                box-shadow: none !important; 
+                background: white !important;
+                width: 65mm !important;
+                height: 30mm !important;
+                padding: 1.5mm !important;
             }
         }
 
@@ -307,7 +316,7 @@
                             <i class="fa-solid fa-print text-brand-700"></i> تخصيص وطباعة ملصقات الـ A4
                         </h2>
                         <p class="text-xs text-slate-500 mt-1">
-                            <strong>3 ملصقات في الصف</strong> (12 ملصق بالصفحة). كل QR يحتوي على رابط ذكي يفتح بطاقة الممتلك تلقائياً عند مسحه بأي كاميرا هاتف.
+                            <strong>3 ملصقات في الصف</strong> (تصميم أفقي 65مم × 30مم). كل QR يحتوي على رابط ذكي يفتح بطاقة الممتلك تلقائياً عند مسحه بأي كاميرا هاتف.
                         </p>
                     </div>
                     <div class="flex items-center gap-2 w-full md:w-auto justify-end flex-wrap">
@@ -996,7 +1005,7 @@
             });
         }
 
-        // ================= STICKER BUILDER =================
+        // ================= STICKER BUILDER (التصميم الأفقي الجديد) =================
         function buildStickerHTML(asset, qrContainerId, showCheckbox) {
             const isSelected = selectedAssetIdsForPrint.has(asset.id);
             const logoSrc = currentLogo || '';
@@ -1006,34 +1015,36 @@
                         class="no-print absolute top-1 right-1 w-4 h-4 text-brand-600 rounded border-slate-300 focus:ring-brand-500 z-20 cursor-pointer">
                 ` : ''}
 
-                <div class="flex items-center gap-1.5 border-b border-emerald-800 pb-1 mb-1.5 flex-shrink-0">
-                    <div class="w-4 h-4 flex-shrink-0 rounded-full overflow-hidden flex items-center justify-center bg-emerald-800 border border-emerald-900">
-                        ${logoSrc
-                            ? `<img src="${logoSrc}" class="w-full h-full object-cover" alt="">`
-                            : `<i class="fa-solid fa-book-quran text-amber-300" style="font-size:7px;"></i>`}
-                    </div>
-                    <p class="text-[9px] text-emerald-900 font-extrabold leading-none tracking-tight">دار سفوان القرآنية</p>
-                </div>
+                <div class="flex items-center justify-between h-full w-full gap-2 overflow-hidden">
+                    <!-- الجزء الأيمن: الشعار والنصوص -->
+                    <div class="flex flex-col justify-between h-full flex-1 min-w-0 pr-1">
+                        <div>
+                            <div class="flex items-center gap-1">
+                                <div class="w-3.5 h-3.5 flex-shrink-0 rounded-full overflow-hidden flex items-center justify-center bg-emerald-800 border border-emerald-900">
+                                    ${logoSrc
+                                        ? `<img src="${logoSrc}" class="w-full h-full object-cover" alt="">`
+                                        : `<i class="fa-solid fa-book-quran text-amber-300" style="font-size:6px;"></i>`}
+                                </div>
+                                <p class="text-[9px] text-emerald-900 font-extrabold leading-none tracking-tight">دار سفوان القرآنية</p>
+                            </div>
+                            <p class="text-[9px] text-emerald-700 font-bold leading-none mt-0.5 mr-[18px]">سبيل</p>
+                        </div>
 
-                <div class="flex items-center gap-1.5 flex-1 min-h-0">
-                    <div class="w-[20mm] h-[20mm] flex-shrink-0 rounded overflow-hidden border border-slate-300 bg-slate-100">
-                        <img src="${asset.image}" class="w-full h-full object-cover" alt="">
-                    </div>
-
-                    <div class="flex-1 min-w-0 flex flex-col justify-center h-full gap-0.5">
-                        <h4 class="font-extrabold text-slate-900 leading-tight" style="font-size:9px; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden;">
-                            ${asset.name}
-                        </h4>
-                        <span class="inline-block bg-slate-900 text-amber-300 font-mono font-extrabold px-1.5 py-0.5 rounded self-start" style="font-size:8.5px; line-height:1;">
-                            ${asset.id}
-                        </span>
-                        <p class="text-slate-600 font-semibold truncate flex items-center gap-0.5" style="font-size:8px;">
-                            <i class="fa-solid fa-location-dot" style="font-size:7px;"></i>
-                            <span class="truncate">${asset.location}</span>
-                        </p>
+                        <div class="mt-auto mr-1">
+                            <p class="text-slate-800 font-bold truncate" style="font-size:9.5px;">${asset.location}</p>
+                            <span class="text-amber-600 font-mono font-extrabold" style="font-size:9px; line-height:1;">${asset.id}</span>
+                        </div>
                     </div>
 
-                    <div id="${qrContainerId}" class="flex-shrink-0 bg-white flex items-center justify-center"></div>
+                    <!-- الجزء الأيسر: الصورة ورمز الـ QR -->
+                    <div class="flex items-center gap-1.5 flex-shrink-0 h-full pl-1">
+                        <!-- الصورة -->
+                        <div class="w-[15mm] h-[15mm] rounded overflow-hidden border border-slate-200 bg-slate-100 flex-shrink-0">
+                            <img src="${asset.image}" class="w-full h-full object-cover" alt="">
+                        </div>
+                        <!-- رمز الـ QR -->
+                        <div id="${qrContainerId}" class="flex-shrink-0 bg-white flex items-center justify-center"></div>
+                    </div>
                 </div>
             `;
         }
@@ -1083,8 +1094,8 @@
                         el.innerHTML = '';
                         new QRCode(el, {
                             text: getAssetQrContent(asset.id),  // ★ رابط ذكي
-                            width: 72,
-                            height: 72,
+                            width: 50,  // تم تعديل الحجم ليتناسب مع الملصق الأفقي
+                            height: 50, // تم تعديل الحجم ليتناسب مع الملصق الأفقي
                             colorDark: "#14532d",
                             colorLight: "#ffffff",
                             correctLevel: QRCode.CorrectLevel.M
@@ -1139,8 +1150,8 @@
                     el.innerHTML = '';
                     new QRCode(el, {
                         text: getAssetQrContent(asset.id),  // ★ رابط ذكي
-                        width: 72,
-                        height: 72,
+                        width: 50, // تم تعديل الحجم
+                        height: 50, // تم تعديل الحجم
                         colorDark: "#14532d",
                         colorLight: "#ffffff",
                         correctLevel: QRCode.CorrectLevel.M

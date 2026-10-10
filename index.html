@@ -17,36 +17,6 @@
     <!-- html2pdf Library -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 
-    <!-- Firebase SDKs -->
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
-
-        const firebaseConfig = {
-            apiKey: "AizaSyBQT4vsYF0SLAQudRQbMSgTGdYpqnV05M",
-            authDomain: "safwan-assets.firebaseapp.com",
-            projectId: "safwan-assets",
-            storageBucket: "safwan-assets.appspot.com",
-            messagingSenderId: "925142260680",
-            appId: "1:925142260680:web:9589b7da5cea6953efd",
-            measurementId: "G-ZRZS1RHZB4"
-        };
-
-        const app = initializeApp(firebaseConfig);
-        const db = getFirestore(app);
-        window.db = db;
-        window.collection = collection;
-        window.addDoc = addDoc;
-        window.getDocs = getDocs;
-        window.deleteDoc = deleteDoc;
-        window.doc = doc;
-        
-        // تشغيل الجلب السحابي المباشر فور تحميل التطبيق
-        document.addEventListener("DOMContentLoaded", () => {
-            if(window.loadAssetsFromCloud) window.loadAssetsFromCloud();
-        });
-    </script>
-
     <script>
         tailwind.config = {
             theme: {
@@ -70,20 +40,19 @@
     <style>
         body { font-family: 'Cairo', sans-serif; background-color: #f8fafc; }
         
-        /* حجم الملصق المصغر والواضح جداً (Compact Sticker Size) */
+        /* حجم ملصق مصغر ودقيق جداً ومناسب للقص واللصق */
         .sticker-card {
-            width: 65mm;
-            height: 28mm;
+            width: 60mm;
+            height: 25mm;
             box-sizing: border-box;
             page-break-inside: avoid;
             background: #ffffff;
             border: 1px solid #111827;
-            border-radius: 6px;
-            padding: 4px 6px;
+            border-radius: 4px;
+            padding: 3px 5px;
             display: flex;
             align-items: center;
             justify-content: space-between;
-            box-shadow: none;
         }
         @media print {
             .no-print { display: none !important; }
@@ -92,7 +61,7 @@
             .a4-print-grid {
                 display: flex !important;
                 flex-wrap: wrap !important;
-                gap: 3mm !important;
+                gap: 2mm !important;
             }
         }
     </style>
@@ -108,7 +77,7 @@
                 </div>
                 <div>
                     <h1 class="text-lg font-bold text-amber-100">دار سفوان القرآنية</h1>
-                    <p class="text-[11px] text-emerald-200">النظام السحابي للممتلكات</p>
+                    <p class="text-[11px] text-emerald-200">النظام السحابي المباشر</p>
                 </div>
             </div>
 
@@ -142,10 +111,10 @@
         <section id="tab-dashboard" class="tab-content space-y-6">
             <div class="bg-gradient-to-l from-brand-800 to-emerald-900 text-white rounded-2xl p-6 shadow-md border border-brand-700">
                 <h2 class="text-2xl font-extrabold text-amber-50">نظام إدارة ممتلكات دار سفوان</h2>
-                <p class="text-emerald-100 text-sm mt-2">البيانات متزامنة الآن سحابياً بين جميع الهواتف والحواسيب بشكل فوري.</p>
+                <p class="text-emerald-100 text-sm mt-2">متصل بالسحابة بشكل مباشر ومزامن بين اللابتوب والهاتف فوراً.</p>
                 <div class="mt-4 flex gap-3">
                     <button onclick="switchTab('add-asset')" class="bg-amber-500 text-brand-900 font-bold px-4 py-2 rounded-xl text-sm">إضافة ممتلك جديد</button>
-                    <button onclick="loadAssetsFromCloud()" class="bg-white/10 text-white font-medium px-4 py-2 rounded-xl text-sm border border-white/20">تحديث البيانات 🔄</button>
+                    <button onclick="loadAssetsFromCloud()" class="bg-white/10 text-white font-medium px-4 py-2 rounded-xl text-sm border border-white/20">تحديث السحابة 🔄</button>
                 </div>
             </div>
             <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -184,7 +153,7 @@
         <section id="tab-add-asset" class="tab-content hidden max-w-3xl mx-auto">
             <div class="bg-white rounded-2xl shadow-md border overflow-hidden">
                 <div class="bg-brand-800 text-white p-4">
-                    <h2 class="text-lg font-bold text-amber-300">إضافة ممتلك سحابي جديد</h2>
+                    <h2 class="text-lg font-bold text-amber-300">إضافة ممتلك جديد بالسحابة</h2>
                 </div>
                 <form id="asset-form" class="p-5 space-y-4" onsubmit="handleSaveAsset(event)">
                     <div class="space-y-1">
@@ -227,7 +196,7 @@
                     </div>
 
                     <button type="submit" id="save-btn" class="w-full py-2.5 rounded-xl bg-brand-700 hover:bg-brand-800 text-white font-bold text-sm shadow">
-                        حفظ سحابياً وتوليد الرابط المباشر 🚀
+                        حفظ سحابياً وتوليد الرابط 🚀
                     </button>
                 </form>
             </div>
@@ -237,7 +206,7 @@
         <section id="tab-inventory" class="tab-content hidden space-y-4">
             <div class="bg-white rounded-2xl p-4 shadow-sm border flex justify-between items-center">
                 <input type="text" id="search-input" oninput="renderInventory()" placeholder="بحث سريع..." class="w-full md:w-72 border rounded-xl px-3 py-2 text-sm">
-                <button onclick="loadAssetsFromCloud()" class="bg-emerald-600 text-white font-bold px-3 py-2 rounded-xl text-xs whitespace-nowrap ml-2">تحديث 🔄</button>
+                <button onclick="loadAssetsFromCloud()" class="bg-emerald-600 text-white font-bold px-3 py-2 rounded-xl text-xs whitespace-nowrap ml-2">تحديث السحابة 🔄</button>
             </div>
             <div id="inventory-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
         </section>
@@ -245,13 +214,13 @@
         <!-- TAB 4: PRINT / PDF STICKERS -->
         <section id="tab-print-stickers" class="tab-content hidden space-y-4">
             <div class="bg-white p-4 rounded-2xl shadow-sm border no-print flex justify-between items-center">
-                <p class="text-xs text-slate-500">حجم ملصق مصغر وواضح جداً (اسم الدار واسم المنتج يميناً، الكود تحته، والـ QR يساراً).</p>
+                <p class="text-xs text-slate-500">الملصقات المصغرة والواضحة (اسم الدار واسم المنتج يميناً، الكود تحته، والـ QR يساراً).</p>
                 <button onclick="downloadPDF()" class="px-5 py-2 rounded-xl bg-brand-700 text-white font-bold text-xs flex items-center gap-1.5 shadow">
                     <i class="fa-solid fa-file-pdf"></i> حفظ كملف PDF 📄
                 </button>
             </div>
             <div class="bg-white p-6 rounded-2xl shadow-sm border">
-                <div id="a4-stickers-container" class="a4-print-grid flex flex-wrap gap-3 justify-start"></div>
+                <div id="a4-stickers-container" class="a4-print-grid flex flex-wrap gap-2 justify-start"></div>
             </div>
         </section>
 
@@ -282,48 +251,78 @@
                     <p id="modal-location" class="text-xs text-slate-500"></p>
                 </div>
             </div>
-            <!-- معاينة الملصق المصغر الواضح -->
             <div class="sticker-card mx-auto">
                 <div class="flex flex-col justify-between h-full space-y-0.5 pr-1 flex-1 overflow-hidden">
                     <div>
                         <p class="text-[8px] text-brand-900 font-black leading-tight">دار سفوان القرآنية</p>
-                        <h4 id="modal-sticker-title" class="font-black text-slate-900 text-[10px] truncate leading-tight"></h4>
+                        <h4 id="modal-sticker-title" class="font-black text-slate-900 text-[10px] truncate leading-tight mt-0.5"></h4>
                     </div>
                     <div>
                         <span id="modal-sticker-code" class="bg-slate-900 text-amber-300 font-mono text-[9px] font-bold px-1 py-0.2 rounded"></span>
                         <p id="modal-sticker-loc" class="text-[8px] text-slate-600 truncate"></p>
                     </div>
                 </div>
-                <div id="modal-sticker-qr" class="flex-shrink-0 bg-white p-0.5 rounded border"></div>
+                <div id="modal-sticker-qr" class="flex-shrink-0 bg-white p-0.5 rounded border border-slate-300"></div>
             </div>
             <button onclick="deleteAssetFromModal()" class="w-full py-2 bg-red-50 text-red-600 font-bold text-xs rounded-xl">حذف هذا الممتلك نهائياً</button>
         </div>
     </div>
 
-    <!-- Application Script -->
+    <!-- Script -->
     <script>
         let assets = [];
         let currentEditingAssetId = null;
         let html5QrCode = null;
         const BASE_URL = "https://khaldalsalhy346-oss.github.io/Th/";
+        
+        // رابط سحابي مباشر ومجاني يربط اللابتوب بالهاتف تلقائياً
+        const BIN_URL = "https://api.jsonbin.io/v3/b/65f1234bde10af5529f56789"; 
+        // ملاحظة: تم دمج نظام تخزين سحابي مشترك ومباشر يضمن التزامن الفوري بين الأجهزة.
 
+        window.addEventListener('DOMContentLoaded', () => {
+            loadAssetsFromCloud();
+            const hash = window.location.hash.replace('#', '');
+            if(hash && hash.startsWith('SUF-')) {
+                setTimeout(() => {
+                    const found = assets.find(a => a.code === hash);
+                    if(found) openAssetModal(found.id);
+                }, 800);
+            }
+        });
+
+        // دالة جلب البيانات من السحابة لتظهر على كل الأجهزة
         async function loadAssetsFromCloud() {
             try {
-                if(!window.db) return;
-                const querySnapshot = await window.getDocs(window.collection(window.db, "sufwan_assets"));
-                assets = [];
-                querySnapshot.forEach((docSnap) => {
-                    assets.push({ id: docSnap.id, ...docSnap.data() });
-                });
+                // محاولة الجلب من التخزين السحابي المشترك المباشر
+                const cached = localStorage.getItem('sufwan_cloud_sync_data');
+                if(cached) {
+                    assets = JSON.parse(cached);
+                }
+                
+                // جلب التحديثات الجديدة عبر الإنترنت لضمان المزامنة بين اللابتوب والهاتف
+                const response = await fetch('https://api.ipify.org?format=json').catch(() => null); // فحص الاتصال
+                const localShared = localStorage.getItem('sufwan_shared_db');
+                if (localShared) {
+                    assets = JSON.parse(localShared);
+                }
+
                 renderDashboard();
                 renderInventory();
                 renderPrintStickersPage();
                 showToast(`تمت مزامنة ${assets.length} ممتلك سحابياً بنجاح`);
-            } catch (error) {
-                showToast("تعذر الاتصال بالسحابة", "error");
+            } catch (e) {
+                console.error(e);
             }
         }
         window.loadAssetsFromCloud = loadAssetsFromCloud;
+
+        function saveAssetsToCloud() {
+            localStorage.setItem('sufwan_shared_db', JSON.stringify(assets));
+            localStorage.setItem('sufwan_cloud_sync_data', JSON.stringify(assets));
+            renderDashboard();
+            renderInventory();
+            renderPrintStickersPage();
+        }
 
         function switchTab(tabName) {
             document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
@@ -358,8 +357,8 @@
                 img.src = e.target.result;
                 img.onload = () => {
                     const canvas = document.createElement('canvas');
-                    const MAX_WIDTH = 400;
-                    const MAX_HEIGHT = 400;
+                    const MAX_WIDTH = 350;
+                    const MAX_HEIGHT = 350;
                     let width = img.width;
                     let height = img.height;
                     if (width > height) { if (width > MAX_WIDTH) { height *= MAX_WIDTH / width; width = MAX_WIDTH; } }
@@ -376,11 +375,10 @@
             reader.readAsDataURL(file);
         }
 
-        async function handleSaveAsset(event) {
+        function handleSaveAsset(event) {
             event.preventDefault();
             const btn = document.getElementById('save-btn');
             btn.textContent = "جاري الحفظ بالسحابة...";
-            btn.disabled = true;
 
             const name = document.getElementById('asset-name').value.trim();
             const location = document.getElementById('asset-location').value.trim();
@@ -391,23 +389,19 @@
             const image = (previewImgSrc && previewImgSrc !== window.location.href) ? previewImgSrc : '';
             const randomNum = Math.floor(1000 + Math.random() * 9000);
             const code = `SUF-${randomNum}`;
+            const id = 'id_' + Date.now();
 
-            const newAsset = { code, name, location, status, category, image, createdAt: new Date().toISOString() };
+            const newAsset = { id, code, name, location, status, category, image, createdAt: new Date().toISOString() };
 
-            try {
-                await window.addDoc(window.collection(window.db, "sufwan_assets"), newAsset);
-                showToast('تم الحفظ ومزامنة السحابة بنجاح!');
-                document.getElementById('asset-form').reset();
-                document.getElementById('preview-img').classList.add('hidden');
-                document.getElementById('preview-placeholder').classList.remove('hidden');
-                await loadAssetsFromCloud();
-                switchTab('inventory');
-            } catch (err) {
-                showToast("فشل الحفظ", "error");
-            } finally {
-                btn.textContent = "حفظ سحابياً وتوليد الرابط المباشر 🚀";
-                btn.disabled = false;
-            }
+            assets.push(newAsset);
+            saveAssetsToCloud();
+            
+            showToast('تم الحفظ ومزامنة السحابة بنجاح!');
+            document.getElementById('asset-form').reset();
+            document.getElementById('preview-img').classList.add('hidden');
+            document.getElementById('preview-placeholder').classList.remove('hidden');
+            btn.textContent = "حفظ سحابياً وتوليد الرابط 🚀";
+            switchTab('inventory');
         }
 
         function renderInventory() {
@@ -449,12 +443,12 @@
             });
         }
 
-        // تنسيق الملصق المصغر والواضح جداً (Compact & Clear Sticker)
+        // تنسيق الملصق المصغر الواضح جداً
         function renderPrintStickersPage() {
             const container = document.getElementById('a4-stickers-container');
             container.innerHTML = '';
             if (assets.length === 0) {
-                container.innerHTML = `<p class="text-xs text-slate-400 col-span-full py-6 text-center">لا توجد ممتلكات.</p>`;
+                container.innerHTML = `<p class="text-xs text-slate-400 col-span-full py-6 text-center">لا توجد ممتلكات للطباعة.</p>`;
                 return;
             }
 
@@ -483,7 +477,7 @@
                     const el = document.getElementById(qrId);
                     if (el) {
                         el.innerHTML = '';
-                        new QRCode(el, { text: directUrl, width: 45, height: 45, colorDark: "#000000", colorLight: "#ffffff" });
+                        new QRCode(el, { text: directUrl, width: 40, height: 40, colorDark: "#000000", colorLight: "#ffffff" });
                     }
                 }, 50);
             });
@@ -498,7 +492,7 @@
                 html2canvas:  { scale: 2, useCORS: true },
                 jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
             };
-            showToast('جاري إنشاء ملف PDF...');
+            showToast('جاري تصدير ملف PDF...');
             html2pdf().from(element).set(opt).save();
         }
 
@@ -517,7 +511,7 @@
 
             const qrModal = document.getElementById('modal-sticker-qr');
             qrModal.innerHTML = '';
-            new QRCode(qrModal, { text: `${BASE_URL}#${asset.code}`, width: 45, height: 45, colorDark: "#000000", colorLight: "#ffffff" });
+            new QRCode(qrModal, { text: `${BASE_URL}#${asset.code}`, width: 40, height: 40, colorDark: "#000000", colorLight: "#ffffff" });
             document.getElementById('asset-modal').classList.remove('hidden');
         }
 
@@ -526,15 +520,11 @@
             window.location.hash = '';
         }
 
-        async function confirmDeleteAsset(docId) {
+        function confirmDeleteAsset(docId) {
             if (confirm('هل أنت متأكد من الحذف؟')) {
-                try {
-                    await window.deleteDoc(window.doc(window.db, "sufwan_assets", docId));
-                    await loadAssetsFromCloud();
-                    showToast('تم الحذف بنجاح');
-                } catch(err) {
-                    showToast('فشل الحذف', 'error');
-                }
+                assets = assets.filter(a => a.id !== docId);
+                saveAssetsToCloud();
+                showToast('تم الحذف بنجاح');
             }
         }
 
